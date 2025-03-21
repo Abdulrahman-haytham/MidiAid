@@ -1,8 +1,8 @@
 const express = require('express');
-const Product = require('../Models/Product'); // Ensure the correct path to the Product model
+const Product = require('../models/Product'); // Ensure the correct path to the Product model
 const router = express.Router();
 const slugify = require('slugify'); // Library for generating slugs from strings
-const User = require('../Models/User'); // تأكد من المسار الصحيح للمودل
+const User = require('../models/user'); // تأكد من المسار الصحيح للمودل
 const mongoose = require('mongoose');
 
 const isAuthenticated = require('../middlewares/isAuthenticated'); // Middleware to check if user is authenticated

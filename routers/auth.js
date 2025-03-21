@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs'); // Library for hashing passwords
 const jwt = require('jsonwebtoken'); // Library for creating JSON Web Tokens
-const User = require('../Models/User'); // User model
+const User = require('../models/user'); // User model
 const isAuthenticated = require('../middlewares/isAuthenticated'); // Middleware to check if user is authenticated
 const hasRole = require('../middlewares/hasRole'); // Middleware to check if user has a specific role
 const isOwner = require('../middlewares/isOwner'); // Middleware to check if user is the owner

@@ -1,5 +1,5 @@
 const express = require('express');
-const Category = require('../Models/Category'); // Ensure the correct path to the Category model
+const Category = require('../models/Category'); // Ensure the correct path to the Category model
 const slugify = require('slugify'); // Import slugify for automatic slug generation
 const isAuthenticated = require('../middlewares/isAuthenticated'); // Middleware to check if user is authenticated
 const hasRole = require('../middlewares/hasRole'); // Middleware to check if user has a specific role

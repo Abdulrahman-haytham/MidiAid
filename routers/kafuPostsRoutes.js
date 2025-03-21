@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const KafuPost = require('../Models/KafuPost'); // KafuPost model
+const KafuPost = require('../models/KafuPost'); // KafuPost model
 const isAuthenticated = require('../middlewares/isAuthenticated'); // Middleware to check if user is authenticated
 const hasRole = require('../middlewares/hasRole'); // Middleware to check if user has a specific role
 const isOwner = require('../middlewares/isOwner'); // Middleware to check if user is the owner

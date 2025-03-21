@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const Pharmacy = require('../Models/Pharmacy'); // Pharmacy model
-const Product = require('../Models/Product'); // Product model
-const User=require('../Models/User');
+const Pharmacy = require('../models/Pharmacy'); // Pharmacy model
+const Product = require('../models/Product'); // Product model
+const User=require('../models/user');
 
 const { check, validationResult } = require('express-validator'); // Validation middleware
 const isAuthenticated = require('../middlewares/isAuthenticated'); // Middleware to check if user is authenticated
