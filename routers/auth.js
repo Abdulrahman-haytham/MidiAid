@@ -112,6 +112,8 @@ router.post('/register', async (req, res) => {
 
         // Save the user to the database
         await newUser.save();
+        
+        console.log("📩 Email received:", req.body.email);
 
         // Send the verification code via email
         await transporter.sendMail({

@@ -80,12 +80,11 @@ productSchema.pre('save', function (next) {
 //     return next(new Error('User not found'));
 //   }
 
-//   // إذا كان المستخدم admin، يتم تعيين isAdminCreated إلى true
+  // إذا كان المستخدم admin، يتم تعيين isAdminCreated إلى true
 //   if (user.role === 'admin') {
 //     this.isAdminCreated = true;
 //   }
-
-//   next();
-// });
+//    next();
+// ;
 
 module.exports = mongoose.model('Product', productSchema);
