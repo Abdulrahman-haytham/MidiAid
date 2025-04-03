@@ -12,15 +12,15 @@ const app = express();
 const connectDB = require('./config/database');
 
 // Import routers
-const authRoute = require('./routers/auth'); // Authentication router
-const uploadRoutes = require('./routers/uploadRoutes'); // File upload router
-const categoryRoutes = require('./routers/categoryRoutes'); // Category router
-const cartRoutes = require('./routers/cartRoutes'); // Shopping cart router
-const kafuPostRoutes = require('./routers/kafuPostsRoutes'); // Kafu posts router
-const orderRoutes = require('./routers/orderRoutes'); // Order router
-const pharmacyRoutes = require('./routers/pharmacyRoutes'); // Pharmacy router
-const productRoutes = require('./routers/productRoutes'); // Product router
-const usedMedicineRoutes = require('./routers/usedMedicineRoutes'); // Used medicine router
+const authRoute = require('./routers/auth.route'); // Authentication router
+const uploadRoutes = require('./routers/upload.route'); // File upload router
+const categoryRoutes = require('./routers/category.route'); // Category router
+const cartRoutes = require('./routers/cart.route'); // Shopping cart router
+const kafuPostRoutes = require('./routers/kafuPosts.route'); // Kafu posts router
+const orderRoutes = require('./routers/order.route'); // Order router
+const pharmacyRoutes = require('./routers/pharmacy.route'); // Pharmacy router
+const productRoutes = require('./routers/product.route'); // Product router
+const usedMedicineRoutes = require('./routers/usedMedicine.route'); // Used medicine router
 
 // Middleware to parse JSON requests
 app.use(express.json());

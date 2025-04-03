@@ -1,13 +1,11 @@
-const express = require('express');
-const router = express.Router();
 const upload = require('../middlewares/upload.middleware'); // Middleware for handling file uploads
 
 /**
- * @desc    Upload a single file
+ * @desc    Handle file upload
  * @route   POST /api/upload
  * @access  Public
  */
-router.post('/', upload.single("image"), async (req, res) => {
+exports.uploadFile = async (req, res) => {
   try {
     const file = req.file; // Access the uploaded file
 
@@ -24,6 +22,4 @@ router.post('/', upload.single("image"), async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
-});
-
-module.exports = router;
+};

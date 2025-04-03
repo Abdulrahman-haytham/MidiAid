@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
+   
 
 const pharmacySchema = new mongoose.Schema({
   userId: {
@@ -9,6 +11,11 @@ const pharmacySchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Pharmacy name is required'],
+    trim: true,
+  },
+  slug: {
+    type: String,
+    unique: true,
     trim: true,
   },
   address: {
@@ -117,6 +124,12 @@ pharmacySchema.methods.calculateAverageRating = function () {
   }
 };
 
+pharmacySchema.pre('save', function (next) {
+  if (this.isModified('name')) {
+    this.slug = slugify(this.name, { lower: true, strict: true });
+  }
+  next();
+});
 pharmacySchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('Pharmacy', pharmacySchema);

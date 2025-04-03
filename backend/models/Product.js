@@ -74,17 +74,21 @@ productSchema.pre('save', function (next) {
   next();
 });
 // Middleware لتعيين createdBy و isAdminCreated تلقائيًا
-// productSchema.pre('save', function (next) {
-//   const user = this.model('User').findById(this.createdBy); // افترض أن createdBy تم تمريره
-//   if (!user) {
-//     return next(new Error('User not found'));
-//   }
+productSchema.pre('save', async function (next) {
+  if (this.isModified('createdBy')) {
+    try {
+      const user = await this.model('User').findById(this.createdBy);
+      if (!user) return next(new Error('User not found'));
 
-  // إذا كان المستخدم admin، يتم تعيين isAdminCreated إلى true
-//   if (user.role === 'admin') {
-//     this.isAdminCreated = true;
-//   }
-//    next();
-// ;
+      if (user.role === 'admin') {
+        this.isAdminCreated = true;
+      }
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
+});
+
 
 module.exports = mongoose.model('Product', productSchema);
