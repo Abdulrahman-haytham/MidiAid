@@ -4,14 +4,11 @@ const nodemailer = require('nodemailer');
 const sendEmail = async (options) => {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT, // Use 587 for TLS, 465 for SSL
-    secure: false, // مهم جدًا عند استخدام port 587
+    port: 465, // استخدم 465 بدلاً من 587
+    secure: true, // ضروري عند استخدام 465
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASSWORD,
-    },
-    tls: {
-      rejectUnauthorized: false, // لحل مشاكل الشهادات
     },
   });
 
