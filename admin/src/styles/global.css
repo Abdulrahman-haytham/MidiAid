@@ -1,0 +1,14 @@
+:root{
+    --color-primary:rgb(204, 79, 121);
+    --color-lighterprimary:rgb(230, 110, 150);
+    --color-sec:rgba(234, 204, 223, 0.864);
+    --color-lightersec:rgb(237, 225, 232);
+    --color-white:rgb(255, 255, 255);
+
+    
+}
+
+
+
+
+/**className={` ${styles.}`} **/

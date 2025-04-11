@@ -1,0 +1,39 @@
+
+
+.usreText{
+    margin: 2px;
+    color: var(--color-primary) !important;
+   
+    
+  }
+  .popBut{
+   
+    color: var(--color-white) !important;
+    border-color: var(--color-primary) !important;
+    background-color:var(--color-primary) !important;
+
+}
+
+  
+  .Filde{
+    margin: 5px !important;
+  }
+  .popDisplay{
+    display: flex;
+    justify-content: space-between;
+  }
+  .pop{
+    
+background-color: var(--color-sec) !important;
+  }
+.userPopTil{
+  color: var(--color-primary) !important;
+}
+  
+  .usersBut{
+   margin: 5px;
+    color: var(--color-white) !important;
+    border-color: var(--color-primary) !important;
+    background-color:var(--color-primary) !important;
+
+}
