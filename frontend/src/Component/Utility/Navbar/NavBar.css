@@ -1,0 +1,81 @@
+.nav-bar{
+    background-color: rgb(248, 245, 245);
+    /* position: fixed; */
+   width: 100%;
+    z-index: 2;
+}
+.logo{
+    width: 190px;
+    height: 70px;
+    margin: auto;
+    /* background-color: inherit; */
+
+}
+.search-bg{
+    background-color: var(--main--color);
+    width: 100%;
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+.kafo {
+    font-weight: 600;
+    font-family: system-ui;
+    border: none;
+    background-color: inherit;
+   
+    font-size: larger;
+    transition: transform 0.3s ease; 
+    cursor: pointer;
+}
+
+.kafo:hover {
+    transform: scale(0.9);
+}
+
+
+.search{
+    border:1px solid white;
+    background-color:inherit;
+    color: white;
+    font-weight: bold;
+  
+}
+.search:hover{
+    background-color:#7e7e7e;
+    transition: 0.3s;
+
+    color: white;
+    border:1px solid white;
+
+}
+.icons{
+    cursor: pointer;
+    font-size: x-large;
+    text-align: end;
+    
+
+}
+.login{
+    background-color: inherit;
+    color: white;
+    border: none;
+}
+.drop-border{
+    border: revert-layer;
+    background-color: inherit;
+}
+.drop-item:focus{
+    background-color: inherit;
+    color: inherit;
+}
+.welcome{
+    color: white;
+    font-family: Almarai;
+    font-size: 16px;
+    font-weight: 1000;
+    margin: auto;
+}
+
+.sidebar.active {
+    transform: translateX(-100%);
+}

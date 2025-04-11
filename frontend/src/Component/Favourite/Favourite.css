@@ -1,0 +1,58 @@
+.wishlist-text{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 10px;
+        font-size: larger;
+        font-weight: 400;
+        /* width: fit-content; */
+
+}
+.fav-text{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px 10px;
+        font-size: larger;
+        font-weight: 400;
+        /* width: fit-content; */
+    
+    }
+    .table-fav tr td{
+        width: 150px;
+        height:150px;
+        text-align: center;
+        /* display: flex; */
+        align-items: center;
+        margin: auto;
+        /* flex-direction: column; */
+    }
+    .fav-content{
+        /* flex-direction: row; */
+        flex-wrap: nowrap;
+        align-content: center;
+        justify-content: center;
+        width: 100%;   
+    }
+    .img-fav{
+        width: 90%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+    }
+    .fav-content{
+        margin: auto;
+        /* text-align: center; */
+        /* display: flex; */
+        margin: 7px;
+        justify-content: center;
+        align-items: center;
+        
+    }
+    .handle-num{
+        cursor: pointer;
+        font-weight: bold;
+        font-size: x-large;
+    }

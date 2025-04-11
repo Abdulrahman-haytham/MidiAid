@@ -1,0 +1,129 @@
+.card-pro {
+    border-radius: 12px;
+    /* min-width: 250px;   */
+     display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100% !important;
+    margin-bottom: 30px;
+    
+}
+
+
+.img-pro {
+    width: 100%;
+    padding: 20px;
+    height: 15rem;
+    border-radius: 12px 12px 0 0;
+    margin-bottom: 10px;
+}
+
+
+    .icon-container {
+        position:relative;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      
+}
+
+.icon-card-cart, .icon-card-heart {
+    background-color: white;
+    width: fit-content;
+    border-style: hidden;
+    padding: 10px;
+    border-radius: 50%;
+    color: rgb(141, 141, 141);
+    box-shadow: 0 0 19px var(--second--color);
+    position: absolute;
+    /* font-weight: bold; */
+    top: -10px; /* Adjust position */
+}
+
+.icon-card-heart {
+    right: 5px;
+    top: -245px;
+}
+
+.icon-card-cart {
+    right: 5px;
+    top: -50px;
+}
+
+.price {
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+/* Add hover effects */
+.icon-card-heart:hover, .icon-card-cart:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease-in-out;
+    cursor: pointer;
+}
+.btn-card{
+   
+    background-color: #eee;
+    border: none;
+    border-bottom: aliceblue;
+    border-radius: 0 0 12px 12px;
+    font-size: small;
+    padding: 4px 0;
+    
+}
+.medicine-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-image {
+  max-height: 60vh;
+  width: 100%;
+  object-fit: cover;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.product-card {
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.product-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #dc3545;
+
+}
+
+.product-info {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.product-price {
+  font-size: 1.5rem;
+  color: #28a745; 
+}
+
+.product-description {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 10px;
+  font-size: 1rem;
+}
+.title-datail{
+  font-style: normal;
+    font-family: none;
+}
+.txt-detail{
+  font-size: larger;
+  line-height: 2;
+  font-family: monospace;
+}
+.img-detail{
+  max-height: 500px;
+}

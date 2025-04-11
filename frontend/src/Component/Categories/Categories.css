@@ -1,0 +1,21 @@
+.cat{
+    padding: 20px;
+    border: 1px solid rgb(141, 141, 141);
+    border-radius: 16px;
+    font-weight: bold;
+    width: 130px;
+    background-color:  white;
+
+    
+}
+.cat:hover{
+    background-color:  var(--main--color);
+    
+    transition: 0.3s;
+    cursor: pointer;
+    
+    
+}
+.login{
+    cursor: pointer;
+}

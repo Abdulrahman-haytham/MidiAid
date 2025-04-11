@@ -1,0 +1,36 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    /* overflow-x: hidden; */
+}
+:root{
+    --main--color:#990394e6;
+    --second--color:  rgb(131, 18, 104);
+}
+body{
+  background: radial-gradient(ellipse at center, rgba(12, 12, 12,.1) 0%, #cecbcb 90%);
+  /* radial-gradient(ellipse at center, rgb(204, 203, 203) 0%, #faf8f8 90%); */
+
+}
+a {
+  text-decoration: none;
+  color: black;
+  
+}
+.btn-submit {
+  height: 46px;
+  width: 374px;
+  border-radius: 9px;
+  border: none;
+  color: white;
+  font-weight: bold;
+  background-color: var(--main--color);
+  
+}
+.btn-submit:hover {
+  background-color: #7e7e7e;
+  transition: 0.3s;
+
+border: 1px solid #7e7e7e;
+}

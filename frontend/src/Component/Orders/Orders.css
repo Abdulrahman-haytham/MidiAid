@@ -1,0 +1,27 @@
+.btn-order{
+    font-family: monospace;
+    font-weight: bolder;
+    background-color: var(--main--color);
+    border: none;
+    font-style: oblique;
+    width: fit-content;
+    padding: 10px;
+
+
+}
+.btn-order:hover{
+    font-family: monospace;
+    font-weight: bolder;
+    background-color: var(--second--color);
+    border: none;
+    font-style: oblique;
+    transition: 0.3s;
+
+}
+.select-order{
+    color: black;
+    background-color: var(--main--color) !important;
+    border: none;
+    width: fit-content !important;
+
+}
