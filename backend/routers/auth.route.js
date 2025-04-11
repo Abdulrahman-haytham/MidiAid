@@ -17,6 +17,6 @@ router.get('/me', isAuthenticated, authController.getCurrentUser);
 router.get('/', isAuthenticated, hasRole('admin'), authController.getAllUsers);
 router.put('/users/:id', isAuthenticated, userValidator.updateUser, validate, authController.updateUser);
 router.delete('/users/:id', isAuthenticated, authController.deleteUser);
-router.post('/create-admin', userValidator.createAdmin, validate, authController.createAdmin);
+router.post('/create-admin', authController.createAdmin);
 
 module.exports = router;
