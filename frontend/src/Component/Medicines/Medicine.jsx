@@ -26,9 +26,9 @@ const Medicine = ({ medicine }) => {
   const [show, setShow] = useState(false);
 
   const [form, setForm] = useState({
-    medicineId: medicine?._id,
-    quantity: '',
-    price: ''
+    productId: medicine?._id,
+    quantity: 8,
+    pharmacyId: '67ee61f05664d04d43b80b40'
   });
 
   const handleInputChange = useCallback((field, value) => {
@@ -55,7 +55,7 @@ const Medicine = ({ medicine }) => {
   const addToCartHandler = () => {
     if (!isInCart) {
       setLoadingCart(true);
-      addToCart(medicine?._id)
+      addToCart(form)
         .unwrap()
         .then(() => {
           setIsInCart(true);
@@ -102,7 +102,7 @@ const Medicine = ({ medicine }) => {
   return (
    
   
-     <>
+    
        <Card className='card-pro me-1'  >
         <Link to={`/products/products/${medicine?._id}`}>
           <Card.Img variant='top' src={image} className='img-pro' />
@@ -136,9 +136,8 @@ const Medicine = ({ medicine }) => {
         {userType === 'pharmacist' && (
           <button onClick={handleShow} className='btn btn-outline-dark mx-2 mb-1'>Add to My Pharmacy</button>
         )}
-      </Card>
-
-      <Modal centered show={show} onHide={handleClose}>
+        {/* Modal to pharmacy */}
+        <Modal centered show={show} onHide={handleClose}>
         <Modal.Header closeButton>
           <Modal.Title>Add Medicine to Pharmacy</Modal.Title>
         </Modal.Header>
@@ -169,7 +168,10 @@ const Medicine = ({ medicine }) => {
           <button  className='btn-submit' onClick={addToPharmacy} style={{width:'80px'}}>Save</button>
         </Modal.Footer>
       </Modal>
-     </>
+      </Card>
+
+      
+     
     
   );
 };

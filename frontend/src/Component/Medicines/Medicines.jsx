@@ -83,7 +83,7 @@ const settings = {
      <div className='px-4'>
         <Slider {...settings}>
         {  products && products?.map((medicine,i)=>(
-         <div  key={i}  >
+         <div  key={i} >
           <Medicine   medicine={medicine}/>
           {/* <Medicine   medicine={medicine}/> */}
         </div>

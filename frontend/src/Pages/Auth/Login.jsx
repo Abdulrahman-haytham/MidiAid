@@ -54,7 +54,7 @@ const Login = ({ setIsLoggedIn }) => {
                 triggerOnce={true}
                 cascade
                 >
-                <Row className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
+                <Row className="d-flex justify-content-center align-items-center mx-1" style={{ minHeight: "80vh" }}>
                     <Col sm="6" lg="6" className="logn my-4 d-flex flex-column align-items-center">
                         <label className="mx-auto title-login">Login</label>
                         <form onSubmit={handleLogin} className="w-100">

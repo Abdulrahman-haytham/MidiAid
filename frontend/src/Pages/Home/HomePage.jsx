@@ -7,7 +7,7 @@ import Medicines from '../../Component/Medicines/Medicines';
 const HomePage = () => {
   
   return (
-    <div style={{ minHeight: "100vh"}}>
+    <div className='pb-5' style={{ minHeight: "100vh"}}>
       <Carousel />
       <SubTitle title="Categories" />
       <Categories />

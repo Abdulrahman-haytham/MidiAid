@@ -64,6 +64,16 @@ const SideBar = () => {
             </div>
 
             <Nav className='flex-column mt-3'>
+            <Nav.Item className='m-auto'>
+                    <Form>
+                        <Form.Check
+                            type="switch"
+                            id="custom-switch"
+                            label="State Active"
+                            className='mx-2 '
+                        />
+                    </Form>
+                </Nav.Item>
                 {userType === 'pharmacist' && (
                     <Nav.Item className='side-item'>
                         <Nav.Link as={Link} to='/my-pharmacy' className='nav-item'>
@@ -72,16 +82,7 @@ const SideBar = () => {
                     </Nav.Item>
                 )}
 
-                <Nav.Item className='side-item fs-5'>
-                    <Form>
-                        <Form.Check
-                            type="switch"
-                            id="custom-switch"
-                            label="State Active"
-                            className='mx-2'
-                        />
-                    </Form>
-                </Nav.Item>
+             
 
                 <Nav.Item className='side-item'>
                     <Nav.Link as={Link} to='/orders' className='nav-item'>

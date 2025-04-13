@@ -3,6 +3,8 @@ import './Categories.css'
 import {  useGetDataQuery } from '../../redux/feature/api/categories/categoriesApi';
 import Cookies from 'universal-cookie';
 import { Fade } from 'react-awesome-reveal';
+import defImg from '../../assets/7.jpg'
+import { Col, Row } from 'react-bootstrap';
 const Categories = () => {
   const {data} =   useGetDataQuery('categories/all');
   const [categores,setCategores] = useState([])
@@ -40,16 +42,16 @@ const Categories = () => {
               triggerOnce={true}
               cascade
             >
-     <div className='d-flex justify-content-center align-item-center gap-2'>
+     <Row className='d-flex justify-content-center align-item-center  gap-2 py-3'>
 
       {data && categores?.map((category, index) => ( 
         // تأكد من أن البيانات موجودة قبل التكرار عليها
-       <div key={index}>
-         <img src={categores?.image} alt="" />
-         <p  className='cat'>{category.name} </p> 
-       </div>// افترض أن كل فئة تحتوي على خاصية "name"
+       <Col lg={2} sm={2} md={2} key={index} className='cat'>
+         <img src={categores?.image || defImg} alt="" className='cat-img'/>
+         <p  className='text-cat'>{category.name} </p> 
+       </Col>// افترض أن كل فئة تحتوي على خاصية "name"
       ))}
-      </div>
+      </Row>
       
       </Fade>
     

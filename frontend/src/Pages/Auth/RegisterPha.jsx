@@ -12,8 +12,8 @@ import Map from '../../Component/Map/Map';
 
 const RegisterPha = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const cookies = new Cookies();
+  // const dispatch = useDispatch();
+  // const cookies = new Cookies();
   const [signup, { isLoading }] = useSignupMutation();
 
   const [imge, setImage] = useState('');
@@ -155,7 +155,7 @@ const RegisterPha = () => {
   return (
     <Container style={{ minHeight: '670px' }}>
       <Fade delay={300} direction="up" triggerOnce cascade>
-        <Row className="py-5 px-2 d-flex justify-content-center align-items-center">
+        <Row className="py-5  d-flex justify-content-center align-items-center mx-1">
           <Col xs={12} md={10} lg={6} className="logn">
             <label className="mx-auto title-login">Sign Up</label>
 
@@ -200,7 +200,7 @@ const RegisterPha = () => {
 
               <div className="mt-3">
                 <input type="text" value={coordinates.join(', ')} readOnly placeholder="Select your location from the map" className="user-input" />
-                <Button onClick={handleLocation} variant="secondary" className="btn my-2 w-100">📍 تحديد موقعي</Button>
+                <Button onClick={handleLocation} variant="secondary" className="btn my-2 w-100">📍 Location</Button>
 
                 <div>
                   <label>City Name  (Automaticy):</label>

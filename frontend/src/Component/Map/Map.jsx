@@ -40,9 +40,9 @@ const Map = ({ position, setPosition }) => {
   }, [position, setPosition]);
 
   return (
-    <div style={{ height: '400px', width: '100%', marginTop: '20px' }}>
+    <div style={{ height: '100vh', marginTop: '20px' }}>
       {position && (
-        <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
+        <MapContainer center={position} zoom={13} className='m-auto' style={{ height: '67vh', width: '80%' }}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"

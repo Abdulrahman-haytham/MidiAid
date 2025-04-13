@@ -29,6 +29,7 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(cookies.get("token"));
   console.log(isLoggedIn);
    
+     const [position, setPosition] = useState(null);
   useEffect(() => {
     // ✅ تحقق تلقائي من حالة تسجيل الدخول عند تحديث `cookies`
     setIsLoggedIn(cookies.get("token"));
@@ -52,8 +53,8 @@ function App() {
                 <Route path='orders' element={<Orders />} />   
                 <Route path='kafuo' element={<KafouPost />} />   
                 <Route path='my-pharmacy' element={<Pharmacy />} />   
-                <Route path='map1' element={<Map />} />   
-                <Route path='map' element={<Maap />} />   
+                <Route path='map' element={<Map  position={position} setPosition={setPosition} />} />   
+                <Route path='maap' element={<Maap />} />   
                 <Route path='products/products/:productId' element={<MedicineDetail />} />   
             </Routes>
            {/* </div>

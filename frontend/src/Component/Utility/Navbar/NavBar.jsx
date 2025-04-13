@@ -36,16 +36,17 @@ function NavBar({ isLoggedIn }) {
   const filteredProducts = allProducts?.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  const { data } = useGetSearchQuery(
+    searchTerm ? `products/search/b` : ''
+  );
+  
   useEffect(() => {
     dispath(filterProducts(filteredProducts));
+  data && console.log(data);
+
   }, [searchTerm, allProducts]);
 
-  const { data } = useGetSearchQuery(
-    searchTerm ? `products/search/${searchTerm}` : '',
-    { skip: !searchTerm }
-  );
-
+ 
   const handleSearchChange = (e) => {
     dispatch(setSearchTerm(e.target.value));
   };
