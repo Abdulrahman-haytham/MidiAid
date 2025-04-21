@@ -132,4 +132,62 @@ pharmacySchema.pre('save', function (next) {
 });
 pharmacySchema.index({ location: '2dsphere' });
 
+exports.getPharmacyDetails = async (req, res) => {
+  const { pharmacyId } = req.params;
+
+  try {
+    const pharmacy = await Pharmacy.findById(pharmacyId)
+      .populate({
+        path: 'medicines.medicineId',
+        select: 'name imageUrl description category',
+      })
+      .populate({
+        path: 'reviews.userId',
+        select: 'name email',
+      })
+      .exec();
+
+    if (!pharmacy) {
+      return res.status(404).json({ error: 'صيدلية غير موجودة' });
+    }
+
+    // احسب متوسط التقييم
+    pharmacy.calculateAverageRating();
+
+    res.status(200).json({
+      pharmacy: {
+        _id: pharmacy._id,
+        name: pharmacy.name,
+        address: pharmacy.address,
+        phone: pharmacy.phone,
+        openingHours: pharmacy.openingHours,
+        imageUrl: pharmacy.imageUrl,
+        description: pharmacy.description,
+        location: pharmacy.location,
+        services: pharmacy.services,
+        socialMedia: pharmacy.socialMedia,
+        website: pharmacy.website,
+        medicines: pharmacy.medicines.map(medicine => ({
+          medicineId: medicine.medicineId,
+          quantity: medicine.quantity,
+          price: medicine.price,
+        })),
+        reviews: pharmacy.reviews.map(review => ({
+          userId: review.userId,
+          rating: review.rating,
+        })),
+        averageRating: pharmacy.averageRating,
+        reviewCount: pharmacy.reviews.length,
+        isActive: pharmacy.isActive,
+        createdAt: pharmacy.createdAt,
+        updatedAt: pharmacy.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error('خطأ بجلب تفاصيل الصيدلية:', error);
+    res.status(500).json({ error: 'حدث خطأ أثناء جلب تفاصيل الصيدلية' });
+  }
+};
+
+
 module.exports = mongoose.model('Pharmacy', pharmacySchema);
