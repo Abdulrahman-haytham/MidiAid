@@ -3,7 +3,7 @@ import {
   useGetFromCartQuery,
   useRemoveFromCartMutation,
   useUpdateQuanCartMutation,
-} from '../../redux/feature/api/categories/categoriesApi';
+} from '../../redux/feature/api/Api';
 import { Container, Table } from 'react-bootstrap';
 import { CiCircleMinus, CiCirclePlus } from 'react-icons/ci';
 import { MdDelete } from 'react-icons/md';
@@ -55,7 +55,7 @@ const Cart = () => {
     await removeFromCart(itemId);
   };
 
-  if (isLoading) return <p className="text-center mt-5">Loading cart...</p>;
+  if (isLoading) return <p className="text-center mt-5" style={{ minHeight: '100vh' }}>Loading cart...</p>;
 
   return (
     <Container>
@@ -66,9 +66,9 @@ const Cart = () => {
           <thead>
             <tr>
               <th>#</th>
-              <th>Medicine Name</th>
-              <th>Quantity</th>
-              <th>Action</th>
+              <th>اسم الدواء</th>
+              <th>الكمية</th>
+              <th>تعديلات</th>
             </tr>
           </thead>
           <tbody>
@@ -98,7 +98,7 @@ const Cart = () => {
             ) : (
               <tr>
                 <td colSpan="4" className="text-center py-4 text-muted">
-                  Your cart is empty.
+                  السلة فارغة 
                 </td>
               </tr>
             )}

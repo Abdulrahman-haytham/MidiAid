@@ -43,14 +43,16 @@ function Carusel() {
         <Fade
          style={{ margin: "auto" }}
          delay={300}
-         direction="left"
+         direction="right"
          triggerOnce={true}
          cascade
         >
-          <div className='mb-2'>
-          Welcome to <span className='mediaid'> MediAid</span> 
+          <div className='mb-2 mt-3'>
+          مرحباً بكم في  <span className='mediaid'> MediAid </span> 
         <p>
-        Easy medication  searches and a way to connect with those who need assistance!
+        {/* Easy medication  searches and a way to connect with those who need assistance! */}
+        نحن هنا لمساعدتكم في العثور على الأدوية التي تحتاجونها، 
+     بأقرب صيدلية إليكم!
 
         </p>
           </div>

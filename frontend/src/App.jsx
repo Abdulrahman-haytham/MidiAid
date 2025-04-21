@@ -1,4 +1,5 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-loading-skeleton/dist/skeleton.css';
 import NavBar from './Component/Utility/Navbar/NavBar';
 import HomePage from './Pages/Home/HomePage';
 import Footer from './Component/Utility/Footer/Footer';
@@ -23,7 +24,8 @@ import "slick-carousel/slick/slick-theme.css";
 import 'react-toastify/dist/ReactToastify.css';
 import KafouPost from './Component/KafouPost/KafouPost';
 import Map from './Component/Map/Map';
-import Maap from './Component/Map/Maap';
+import Loader from './Component/Loader/Loader';
+import AddMedicine from './Component/AddMedicine/AddMedicine';
 function App() {
   const cookies = new Cookies()
   const [isLoggedIn, setIsLoggedIn] = useState(cookies.get("token"));
@@ -52,9 +54,11 @@ function App() {
                 <Route path='cart' element={<Cart />} />   
                 <Route path='orders' element={<Orders />} />   
                 <Route path='kafuo' element={<KafouPost />} />   
+                <Route path='add-medicine' element={<AddMedicine />} />   
+                {/* <Route path='lo' element={<div className='w-50'><Loader /></div>} />    */}
                 <Route path='my-pharmacy' element={<Pharmacy />} />   
                 <Route path='map' element={<Map  position={position} setPosition={setPosition} />} />   
-                <Route path='maap' element={<Maap />} />   
+        
                 <Route path='products/products/:productId' element={<MedicineDetail />} />   
             </Routes>
            {/* </div>

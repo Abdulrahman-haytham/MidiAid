@@ -1,5 +1,5 @@
 import { useParams } from "react-router";
-import { useAddToCartMutation, useGetByIdQuery } from "../../redux/feature/api/categories/categoriesApi";
+import { useAddToCartMutation, useGetByIdQuery } from "../../redux/feature/api/Api";
 import { Container, Row, Col, Card, Image, Spinner, Alert } from "react-bootstrap";
 import img from '../../assets/pro12.png';
 import { toast, ToastContainer } from "react-toastify";

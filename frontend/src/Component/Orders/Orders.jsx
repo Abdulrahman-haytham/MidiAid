@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Button, Form, Modal, Table, Alert, Dropdown, DropdownButton, Toast, ToastContainer } from 'react-bootstrap';
 import './Orders.css';
-import { useAddOrderMutation, useGetOrdersQuery } from '../../redux/feature/api/categories/categoriesApi';
+import { useAddOrderMutation, useGetOrdersQuery } from '../../redux/feature/api/Api';
 
 const Orders = () => {
   const [show, setShow] = useState(false);

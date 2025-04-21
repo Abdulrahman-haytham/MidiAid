@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useVerifyCodeMutation } from "../../redux/feature/api/authApi";
-import { Col, Row, Spinner, Alert } from "react-bootstrap";
+import { Col, Row, Spinner, Alert, Container } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import { Fade } from "react-awesome-reveal";
@@ -42,7 +42,7 @@ const Verify = () => {
   };
 
   return (
-    <div  style={{ minHeight: "80vh" }}>
+    <Container>
       <Fade
       
           style={{ margin: "auto" }}
@@ -51,7 +51,7 @@ const Verify = () => {
           triggerOnce={true}
           cascade
           >
-       <Row className="d-flex justify-content-center align-items-center">
+       <Row className="d-flex justify-content-center align-items-center mx-1"  style={{ minHeight: "80vh" }}>
       <Col sm="6" lg="6" className="logn my-4 d-flex flex-column align-items-center">
         <label className="mx-auto title-login">Verify Your Email</label>
         
@@ -83,7 +83,7 @@ const Verify = () => {
     </Row>
 
        </Fade>
-    </div>
+    </Container>
    
   );
 };

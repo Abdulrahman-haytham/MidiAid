@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
+import Cookies from 'universal-cookie'
 
-
-
+const cookies= new Cookies()
 
 const initialState={
     user:null,
-    token: localStorage.getItem("token") || null,
+    token: cookies.get("token") || null,
 };
 
 
@@ -16,12 +16,12 @@ const authSlice = createSlice({
         setUser:(state,action) => {
             state.user= action.payload.user;
             state.token= action.payload.token;
-            localStorage.setItem("token",action.payload.token);
+            cookies.set("token",action.payload.token);
         },
         logout:(state) => {
             state.user=null;
             state.token= null;
-            localStorage.removeItemo("token");
+            cookies.remove("token");
         },
     }
 

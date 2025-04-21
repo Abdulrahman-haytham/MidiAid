@@ -3,10 +3,10 @@ import Cookies from 'universal-cookie';
 
 const cookies = new Cookies();
 
-export const categoriesApi = createApi({
-    reducerPath: 'categoriesApi',
+export const api = createApi({
+    reducerPath: 'Api',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://midiaid.onrender.com/api/',
+        baseUrl: import.meta.env.VITE_API,
         prepareHeaders: (headers) => {
             const token = cookies.get("token");
             
@@ -118,4 +118,4 @@ export const { useGetDataQuery ,
   useRemoveFromCartMutation,
   useCreateMyParmacyMutation,
   useUpdateQuanCartMutation
-} = categoriesApi;
+} = api;

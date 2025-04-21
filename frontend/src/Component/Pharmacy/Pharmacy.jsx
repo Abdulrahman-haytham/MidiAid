@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Button, Form, Col, Row, Container } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import './Pharmacy.css';
-import { useCreateMyParmacyMutation } from '../../redux/feature/api/categories/categoriesApi';
+import { useCreateMyParmacyMutation } from '../../redux/feature/api/Api';
 
 const Pharmacy = () => {
   const selectedMedicines = useSelector((state) => state.medicineToPh.form);

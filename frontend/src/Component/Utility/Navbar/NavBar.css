@@ -1,12 +1,12 @@
 .nav-bar{
-    background-color: rgb(248, 245, 245);
+    background-color: rgb(241, 240, 240);
     /* position: fixed; */
    width: 100%;
     z-index: 2;
 }
 .logo{
     width: 190px;
-    height: 70px;
+    height: 60px;
     margin: auto;
     /* background-color: inherit; */
 
@@ -19,13 +19,13 @@
 }
 .kafo {
     font-weight: 600;
-    font-family: system-ui;
     border: none;
     background-color: inherit;
-   
+    font-family: cursive;
     font-size: larger;
     transition: transform 0.3s ease; 
     cursor: pointer;
+    color: #fffeff;
 }
 
 .kafo:hover {
@@ -41,7 +41,7 @@
   
 }
 .search:hover{
-    background-color:#7e7e7e;
+    background-color:var(--second--color);
     transition: 0.3s;
 
     color: white;
@@ -50,8 +50,14 @@
 }
 .icons{
     cursor: pointer;
-    font-size: x-large;
-    text-align: end;
+    font-size: larger;
+    
+
+}
+.icons a:hover{
+    cursor: pointer;
+    transform: scale(1.1);
+        transform: 0.3s;
     
 
 }
@@ -79,3 +85,16 @@
 .sidebar.active {
     transform: translateX(-100%);
 }
+.no-caret .dropdown-toggle::after {
+    display: none !important;
+  }
+  @media (max-width: 768px) {
+    .dropdown-menu {
+      position: absolute !important;
+      right: -100px;
+      left: auto;
+      z-index: 1050;
+      min-width: 120px;
+    }
+  }
+  

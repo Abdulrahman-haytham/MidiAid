@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Col, Container, Row, Spinner, Alert } from 'react-bootstrap';
+import { Button, Col, Container, Row, Spinner, Alert, Form } from 'react-bootstrap';
 import PhoneInput from 'react-phone-number-input/input';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSignupMutation } from '../../redux/feature/api/authApi';
@@ -9,6 +9,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Fade } from 'react-awesome-reveal';
 import Map from '../../Component/Map/Map';
+import { useUploadImgMutation } from '../../redux/feature/api/uploadImage/uploadImage';
 
 const RegisterPha = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const RegisterPha = () => {
   const [signup, { isLoading }] = useSignupMutation();
 
   const [imge, setImage] = useState('');
+  const [uploadImage]= useUploadImgMutation()
   const [url, setImageUrl] = useState('');
   const [position, setPosition] = useState(null);
   const [coordinates, setCoordinates] = useState([]);
@@ -64,15 +66,16 @@ const RegisterPha = () => {
 
     setImage(file);
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file);
 
     try {
-      const res = await axios.post('https://midiaid.onrender.com/api/uploads/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      setImageUrl(res.data.data);
+      const res = await uploadImage(formData).unwrap()
+      console.log(res);
+      
+      setImageUrl(res?.data);
     } catch (error) {
+      console.log(error);
+      
       toast.error('Failed to upload image.');
     }
   };
@@ -83,28 +86,6 @@ const RegisterPha = () => {
     }
   }, [position]);
 
-  useEffect(() => {
-    const getCityName = async () => {
-      if (position) {
-        try {
-          const res = await axios.get(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${position.lat}&lon=${position.lng}`
-          );
-          const cityName =
-            res.data.address.city ||
-            res.data.address.town ||
-            res.data.address.village ||
-            res.data.address.state;
-          setCity(cityName || 'غير معروف');
-        } catch (error) {
-          console.error('Failed to fetch city name:', error);
-          setCity('غير معروف');
-        }
-      }
-    };
-
-    getCityName();
-  }, [position]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -113,14 +94,14 @@ const RegisterPha = () => {
 
     const { firstName, lastName, email, password, phone, address } = userData;
 
-    if (!firstName || !lastName || !email || !password || !phone || !address || !position) {
+    if (!firstName || !lastName || !email || !password || !phone || !address ) {
       setErrorMessage('Please fill in all fields correctly.');
       return;
     }
 
     const form = {
       ...userData,
-      location: { type: 'Point', coordinates: [position.lat, position.lng] },
+      location: { type: 'Point', coordinates: [8.9, 9.7] },
       type: 'pharmacist',
       username: firstName + lastName,
       license: url,
@@ -128,27 +109,13 @@ const RegisterPha = () => {
 
     try {
       const response = await signup(form).unwrap();
-
-      if (response?.user) {
-        toast.success('Registration successful! Redirecting...');
+   if (response?.user) {
+        toast.success('تم التسجيل بنجاح! سيتم تحويلك...');
         setTimeout(() => navigate('/verify'), 2000);
-        return;
-      }
-
-      if (response?.error) {
-        if (response.error.status === 400) {
-          toast.error('Invalid registration details.');
-        } else if (response.error.status === 409) {
-          toast.error('Email or phone already registered.');
-        } else if (response.error.status === 500) {
-          toast.error('Server error, please try again later.');
-        } else {
-          setErrorMessage('Registration failed. Please check your details.');
-        }
       }
     } catch (err) {
-      console.error('Registration Error:', err);
-      toast.error('An error occurred during registration. Please try again.');
+      console.error('خطأ أثناء التسجيل:', err);
+      toast.error(err?.data?.message || 'حدث خطأ أثناء التسجيل. حاول لاحقاً.');
     }
   };
 
@@ -157,61 +124,65 @@ const RegisterPha = () => {
       <Fade delay={300} direction="up" triggerOnce cascade>
         <Row className="py-5  d-flex justify-content-center align-items-center mx-1">
           <Col xs={12} md={10} lg={6} className="logn">
-            <label className="mx-auto title-login">Sign Up</label>
+            <label className="mx-auto title-login">إنشاء حساب</label>
 
             <form onSubmit={handleRegister} className="w-100">
               <Row>
                 <Col xs={12} md={6}>
-                  <input name="firstName" value={userData.firstName} placeholder="First Name" type="text" className="user-input" onChange={handleChange} required />
+                  <input name="firstName" value={userData.firstName} placeholder="الاسم الأول" type="text" className="user-input" onChange={handleChange} required />
                 </Col>
                 <Col xs={12} md={6}>
-                  <input name="lastName" value={userData.lastName} placeholder="Last Name" type="text" className="user-input" onChange={handleChange} required />
+                  <input name="lastName" value={userData.lastName} placeholder="الاسم الأخير" type="text" className="user-input" onChange={handleChange} required />
                 </Col>
               </Row>
 
               <Row>
                 <Col xs={12}>
-                  <input name="email" value={userData.email} placeholder="Email" type="email" className="user-input" onChange={handleChange} required />
+                  <input name="email" value={userData.email} placeholder="الايميل" type="email" className="user-input" onChange={handleChange} required />
                 </Col>
                 <Col xs={12}>
-                  <input name="password" value={userData.password} placeholder="Password" type="password" className="user-input" onChange={handleChange} required />
+                  <input name="password" value={userData.password} placeholder="كلمة السر" type="password" className="user-input" onChange={handleChange} required />
                 </Col>
                 <Col xs={12}>
-                  <PhoneInput placeholder="Enter phone number" value={userData.phone} onChange={handlePhoneChange} className="user-input" required />
+                  <PhoneInput placeholder="رقم الهاتف"
+                     value={userData.phone}
+                     onChange={handlePhoneChange}
+                     style={{ direction: 'rtl', textAlign: 'right' }}
+                     className="user-input  "
+                     required />
                 </Col>
                 <Col xs={12}>
-                  <input name="address" value={userData.address} placeholder="Your Address" type="text" className="user-input" onChange={handleChange} required />
+                  <input name="address" value={userData.address} placeholder="العنوان" type="text" className="user-input" onChange={handleChange} required />
                 </Col>
               </Row>
 
-              <div className="mt-2">
-                <label htmlFor="file-upload" className="custom-file-upload btn btn-secondary">
+                {/* <label htmlFor="file-upload" className="custom-file-upload btn btn-secondary">
                   Upload License
-                </label>
-                <input
-                  id="file-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                  required
-                />
-              </div>
+                </label> */}
+             <Form.Group controlId="formFileLg">
+              <Form.Label style={{ direction: 'rtl', textAlign: 'right' }}>
+                قم برفع صورة لشهادة الصيدلة
+              </Form.Label>
+              <Form.Control
+                type="file"
+                size="lg"
+                onChange={handleImageUpload}
+                className="user-input"
+                style={{ display: 'block' }}
+                required
+              />
+            </Form.Group>
 
-              <div className="mt-3">
-                <input type="text" value={coordinates.join(', ')} readOnly placeholder="Select your location from the map" className="user-input" />
-                <Button onClick={handleLocation} variant="secondary" className="btn my-2 w-100">📍 Location</Button>
+              {/* <div className="mt-3">
+                {/* <input type="text" value={coordinates.join(', ')} readOnly placeholder="Select your location from the map" className="user-input" /> * /}
+                <Button onClick={handleLocation} variant="secondary" className="btn my-2 w-50 mx-auto">📍 Location</Button>
 
-                <div>
-                  <label>City Name  (Automaticy):</label>
-                  <input type="text" value={city} readOnly className="user-input" />
-                </div>
-
+              
                 {showMap && <Map position={position} setPosition={setPosition} />}
-              </div>
+              </div> */}
 
               <button type="submit" className="btn-submit mx-auto mt-4 w-100" disabled={isLoading}>
-                {isLoading ? <Spinner animation="border" size="sm" /> : 'Sign Up'}
+                {isLoading ? <Spinner animation="border" size="sm" /> : 'إنشاء حساب'}
               </button>
             </form>
 
@@ -219,7 +190,7 @@ const RegisterPha = () => {
             {successMessage && <Alert variant="success" className="mt-3">{successMessage}</Alert>}
 
             <label className="mx-auto my-4">
-              Already have an account? <Link to="/login" style={{ textDecoration: 'none' }}><span className="text-danger">Login</span></Link>
+              هل لديك حساب بالفعل ؟ <Link to="/login" style={{ textDecoration: 'none' }}><span className="text-danger">تسجيل دخول</span></Link>
             </label>
           </Col>
         </Row>

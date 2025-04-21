@@ -2,29 +2,32 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    /* overflow-x: hidden; */
+    font-family: sans-serif;
 }
 :root{
     --main--color:#990394e6;
-    --second--color:  rgb(131, 18, 104);
+    --second--color:  #960691e6;
 }
 body{
-  background: radial-gradient(ellipse at center, rgba(12, 12, 12,.1) 0%, #cecbcb 90%);
+  background:white
+        
+  /* radial-gradient(ellipse at center, rgba(12, 12, 12,.1) 0%, #cecbcb 90%); */
   /* radial-gradient(ellipse at center, rgb(204, 203, 203) 0%, #faf8f8 90%); */
 
 }
 a {
-  text-decoration: none;
+  text-decoration: none !important;
   color: black;
   
 }
 .btn-submit {
   height: 46px;
-  width: 374px;
+  /* width: 374px; */
   border-radius: 9px;
   border: none;
   color: white;
   font-weight: bold;
+  display: block;
   background-color: var(--main--color);
   
 }
@@ -34,3 +37,4 @@ a {
 
 border: 1px solid #7e7e7e;
 }
+

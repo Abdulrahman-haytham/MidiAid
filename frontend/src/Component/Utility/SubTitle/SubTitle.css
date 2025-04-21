@@ -16,7 +16,7 @@
 }
 .text-title{
     font-size: 23px;
-    background: linear-gradient(to left, #bd00a3d9, #6e036e);
+    background: linear-gradient(to right, #bd00a3d9, #6e036e);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-family: none;

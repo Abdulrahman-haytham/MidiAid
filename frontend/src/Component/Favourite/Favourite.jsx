@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useGetFromFavQuery } from '../../redux/feature/api/categories/categoriesApi';
+import { useGetFromFavQuery } from '../../redux/feature/api/Api';
 import { Container, Table } from 'react-bootstrap';
 import { MdDelete } from 'react-icons/md';
 import defaultImg from '../../assets/pro12.png';
@@ -23,23 +23,23 @@ const Favourite = () => {
   };
 
   if (isLoading) {
-    return <p className="text-center mt-5"  style={{ minHeight: '100vh' }}>Loading your wish list...</p>;
+    return <p className="text-center mt-5"  style={{ minHeight: '100vh' }}>...جار تحميل المفضلة </p>;
   }
 
   if (isError) {
-    return <p className="text-center mt-5 text-danger"  style={{ minHeight: '100vh' }}>Failed to load wish list.</p>;
+    return <p className="text-center mt-5 text-danger"  style={{ minHeight: '100vh' }}>فشل في تحميل المفضلة .</p>;
   }
 
   return (
     <Container>
-      <div className="pt-3" style={{ minHeight: '100vh' }}>
-        <h2 className="fav-text mb-4">My Wish List</h2>
+      <div className="pt-3" style={{ minHeight:'100vh'}}> 
+        <h2 className="fav-text mb-4"> المفضلة </h2>
 
         <Table hover variant="light" className="table-fav fs-5 text-center">
           <thead>
             <tr>
               <th>#</th>
-              <th>Medicine Name</th>
+              <th>اسم الدواء</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -67,7 +67,7 @@ const Favourite = () => {
             ) : (
               <tr>
                 <td colSpan="3" className="text-center py-4 text-muted">
-                  Your wishlist is empty.
+                  المفضلة فارغة 
                 </td>
               </tr>
             )}

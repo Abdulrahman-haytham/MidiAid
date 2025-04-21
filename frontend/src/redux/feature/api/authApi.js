@@ -6,7 +6,7 @@ const cookies = new Cookies();
 export const authApi = createApi({
     reducerPath: 'authApi',
     baseQuery: fetchBaseQuery({
-        baseUrl: 'https://midiaid.onrender.com/api/auth',
+        baseUrl: import.meta.env.VITE_AUTH_API,
         prepareHeaders: (headers) => {
             const token = cookies.get("token"); // ✅ نقرأ التوكن هنا كل مرة
             if (token) {
