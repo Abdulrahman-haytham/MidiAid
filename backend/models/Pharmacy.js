@@ -44,6 +44,12 @@ const pharmacySchema = new mongoose.Schema({
     required: [true, 'Opening hours are required'],
     trim: true,
   },
+  workingDays: {
+    type: [String],
+    enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    default: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+  }
+,  
   imageUrl: {
     type: String,
     required: [true, 'Image URL is required'],

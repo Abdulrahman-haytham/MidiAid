@@ -22,7 +22,20 @@ exports.createPharmacy = async (req, res) => {
   }
 
   try {
-    const { name, address, location, phone, openingHours, imageUrl, description, services, socialMedia, website, medicines } = req.body;
+    const {
+      name,
+      address,
+      location,
+      phone,
+      openingHours,
+      workingDays, 
+      imageUrl,
+      description,
+      services,
+      socialMedia,
+      website,
+      medicines,
+    } = req.body;
 
     const pharmacy = new Pharmacy({
       userId: req.user.id,
@@ -34,6 +47,7 @@ exports.createPharmacy = async (req, res) => {
       },
       phone,
       openingHours,
+      workingDays, 
       imageUrl,
       description,
       services,
@@ -46,9 +60,10 @@ exports.createPharmacy = async (req, res) => {
     res.status(201).json({ message: 'Pharmacy created successfully', pharmacy });
   } catch (error) {
     res.status(500).json({ error: error.message });
-    console.log(error)
+    console.log(error);
   }
 };
+
 
 
 exports.updatePharmacy = async (req, res) => {
@@ -58,7 +73,7 @@ exports.updatePharmacy = async (req, res) => {
   }
 
   try {
-    // استخدام الـ userId من التوكن (المستخدم الذي قام بتسجيل الدخول)
+
     const userId = req.user.id;
 
     const {
@@ -67,6 +82,7 @@ exports.updatePharmacy = async (req, res) => {
       location,
       phone,
       openingHours,
+      workingDays, 
       imageUrl,
       description,
       services,
@@ -86,6 +102,7 @@ exports.updatePharmacy = async (req, res) => {
     }
     if (phone) updates.phone = phone;
     if (openingHours) updates.openingHours = openingHours;
+    if (workingDays) updates.workingDays = workingDays;  
     if (imageUrl) updates.imageUrl = imageUrl;
     if (description) updates.description = description;
     if (services) updates.services = services;
@@ -168,7 +185,7 @@ exports.getMyPharmacy = async (req, res) => {
 exports.getAllPharmacies = async (req, res) => {
   try {
     const pharmacies = await Pharmacy.find({ isActive: true }).select(
-      'name address location phone openingHours imageUrl averageRating services'
+      'name address location phone openingHours workingDays imageUrl averageRating services'
     );
     res.status(200).json(pharmacies);
   } catch (error) {
@@ -184,7 +201,6 @@ exports.getAllPharmacies = async (req, res) => {
 exports.getPharmacyDetails = async (req, res) => {
   try {
     const pharmacyId = req.params.id;
-    console.log(pharmacyId)
 
     const pharmacy = await Pharmacy.findById(pharmacyId)
       
@@ -314,7 +330,7 @@ exports.findNearbyPharmacies = async (req, res) => {
           $maxDistance: parseInt(maxDistance),
         },
       },
-    }).select('name location _id'); // ✅ هون التعديل
+    }).select('name location _id'); // ✅ 
 
     res.status(200).json(nearbyPharmacies);
   } catch (error) {
