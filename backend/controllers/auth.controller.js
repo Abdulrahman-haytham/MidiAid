@@ -128,12 +128,38 @@ exports.logout = (req, res) => {
 // جلب بيانات المستخدم الحالي
 exports.getCurrentUser = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
+        const user = await User.findById(req.user.id).select('type username email firstName lastName phone address location ');
         res.json(user);
     } catch (error) {
         errorHandler(res, error, 'Fetching current user error');
     }
 };
+
+
+exports.updateCurrentUser = async (req, res) => {
+    try {
+      const allowedUpdates = ['username', 'firstName', 'lastName', 'email', 'phone', 'address', 'location'];
+      const updates = {};
+  
+      allowedUpdates.forEach(field => {
+        if (req.body[field] !== undefined) {
+          updates[field] = req.body[field];
+        }
+      });
+  
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        { $set: updates },
+        { new: true, runValidators: true }
+      ).select('-password');
+  
+      res.status(200).json(updatedUser);
+    } catch (error) {
+      console.error('خطأ في تحديث بيانات المستخدم:', error);
+      res.status(500).json({ error: 'حدث خطأ أثناء تحديث بيانات المستخدم' });
+    }
+  };
+  
 
 // جلب جميع المستخدمين (للمدير فقط)
 exports.getAllUsers = async (req, res) => {

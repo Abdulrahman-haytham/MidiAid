@@ -89,15 +89,32 @@ exports.getPharmacyOrders = async (req, res) => {
   }
 };
 
-exports.getUserOrders = async (req, res) => {
-  try {
-    const orders = await Order.find({ userId: req.user.id }).sort({ createdAt: -1 });
-    res.status(200).json(orders);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
+  exports.getUserOrders = async (req, res) => {
+    try {
+      const orders = await Order.find({ userId: req.user.id })
+        .sort({ createdAt: -1 })
+        .populate({
+          path: 'pharmacyId',
+          select: 'name', // منجيب بس اسم الصيدلية
+        });
+  
+      // بنرجع المعلومات المختصرة بس
+      const simplifiedOrders = orders.map(order => ({
+        orderId: order._id,
+        pharmacyId: order.pharmacyId?._id,
+        pharmacyName: order.pharmacyId?.name,
+        status: order.status,
+        orderType: order.orderType,
+        createdAt: order.createdAt,
+        totalPrice: order.totalPrice,
+      }));
+  
+      res.status(200).json(simplifiedOrders);
+    } catch (error) {
+      console.error('Error fetching user orders:', error);
+      res.status(500).json({ error: 'حدث خطأ أثناء جلب الطلبات' });
+    }
+  };
 exports.getOrderDetails = async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId)

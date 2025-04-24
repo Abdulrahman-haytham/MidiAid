@@ -14,6 +14,7 @@ router.post('/verify-email', authController.verifyEmail);
 router.post('/login', userValidator.login, validate, authController.login);
 router.post('/logout', isAuthenticated, authController.logout);
 router.get('/me', isAuthenticated, authController.getCurrentUser);
+router.patch('/updateCurrentUser', isAuthenticated, authController.updateCurrentUser);
 router.get('/', isAuthenticated, hasRole('admin'), authController.getAllUsers);
 router.put('/users/:id', isAuthenticated, userValidator.updateUser, validate, authController.updateUser);
 router.delete('/users/:id', isAuthenticated, authController.deleteUser);

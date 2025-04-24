@@ -4,8 +4,17 @@ const Product = require('../models/Product');
 const User = require('../models/user');
 const { validationResult } = require('express-validator');
 const slugify = require('slugify');
+   
 const Order = require('../models/Order');
 
+   
+
+
+/**
+ * @desc    Create a new pharmacy
+ * @route   POST /api/pharmacies
+ * @access  Private
+ */
 exports.createPharmacy = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -54,6 +63,9 @@ exports.createPharmacy = async (req, res) => {
     console.log(error);
   }
 };
+
+
+
 exports.updatePharmacy = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -115,19 +127,16 @@ exports.updatePharmacy = async (req, res) => {
     console.log(error);
   }
 };
-exports.getAllPharmacies = async (req, res) => {
-  try {
-    const pharmacies = await Pharmacy.find({ isActive: true }).select(
-      'name address location phone openingHours workingDays imageUrl averageRating services'
-    );
-    res.status(200).json(pharmacies);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+
+
+
 exports.getMyPharmacy = async (req, res) => {
   try {
     const pharmacy = await Pharmacy.findOne({ userId: req.user.id })
+      .populate({
+        path: 'medicines.medicineId',
+        select: 'name imageUrl description category',
+      })
       .populate({
         path: 'reviews.userId',
         select: 'name email',
@@ -138,7 +147,8 @@ exports.getMyPharmacy = async (req, res) => {
       return res.status(404).json({ message: 'لم يتم العثور على صيدلية لهذا المستخدم' });
     }
 
-    // احسب عدد التقييمات
+    // احسب عدد الأدوية وعدد التقييمات
+    const medicineCount = pharmacy.medicines.length;
     const reviewCount = pharmacy.reviews.length;
 
     // احسب وصف التقييم اللفظي
@@ -152,28 +162,13 @@ exports.getMyPharmacy = async (req, res) => {
 
     res.status(200).json({
       pharmacy: {
-        _id: pharmacy._id,
-        name: pharmacy.name,
-        address: pharmacy.address,
-        phone: pharmacy.phone,
-        openingHours: pharmacy.openingHours,
-        workingDays: pharmacy.workingDays,
-        imageUrl: pharmacy.imageUrl,
-        description: pharmacy.description,
-        location: pharmacy.location,
-        services: pharmacy.services,
-        socialMedia: pharmacy.socialMedia,
-        website: pharmacy.website,
-        reviews: pharmacy.reviews.map(review => ({
-          userId: review.userId,
-          rating: review.rating,
-        })),
+        ...pharmacy.toObject(),
+        medicineCount,
         reviewCount,
-        averageRating: pharmacy.averageRating,
         ratingLabel,
-        isActive: pharmacy.isActive,
         createdAt: pharmacy.createdAt,
         updatedAt: pharmacy.updatedAt,
+        isActive: pharmacy.isActive,
       },
     });
   } catch (error) {
@@ -181,27 +176,54 @@ exports.getMyPharmacy = async (req, res) => {
     res.status(500).json({ error: 'حدث خطأ أثناء جلب بيانات الصيدلية' });
   }
 };
-exports.getMyPharmacyOrders = async (req, res) => {
+
+/**
+ * @desc    Get all pharmacies (without sensitive data)
+ * @route   GET /api/pharmacies
+ * @access  Public
+ */
+exports.getAllPharmacies = async (req, res) => {
   try {
-    // نجيب الصيدلية المرتبطة بالمستخدم الحالي
-    const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
-
-    if (!pharmacy) {
-      return res.status(404).json({ message: 'لم يتم العثور على صيدلية لهذا المستخدم' });
-    }
-
-    // نجيب كل الطلبات المرتبطة بهي الصيدلية
-    const orders = await Order.find({ pharmacyId: pharmacy._id })
-      .populate('userId', 'name email') // معلومات المستخدم يلي عامل الطلب
-      .populate('items.productId', 'name price') // معلومات المنتجات داخل الطلب
-      .sort({ createdAt: -1 }); // الأحدث أولاً
-
-    res.status(200).json({ orders });
+    const pharmacies = await Pharmacy.find({ isActive: true }).select(
+      'name address location phone openingHours workingDays imageUrl averageRating services'
+    );
+    res.status(200).json(pharmacies);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'حدث خطأ أثناء جلب الطلبات' });
+    res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * @desc    Get full pharmacy details (including products and reviews)
+ * @route   GET /api/pharmacies/details
+ * @access  Private
+ */
+exports.getPharmacyDetails = async (req, res) => {
+  try {
+    const pharmacyId = req.params.id;
+
+    const pharmacy = await Pharmacy.findById(pharmacyId).lean(); // lean لتحصل على نسخة عادية من الـ object
+
+    if (!pharmacy) {
+      return res.status(404).json({ error: 'Pharmacy not found' });
+    }
+
+    // احذف المنتجات من النتيجة
+    delete pharmacy.medicines;
+
+    res.status(200).json(pharmacy);
+  } catch (error) {
+    console.log("error in getPharmacyDetails controller ", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+/**
+ * @desc    Add a rating to a pharmacy (without comments)
+ * @route   POST /api/pharmacies/:id/rate
+ * @access  Private
+ */
 exports.ratePharmacy = async (req, res) => {
   try {
     const { id } = req.params;
@@ -231,60 +253,12 @@ exports.ratePharmacy = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-exports.checkUserHasPharmacy = async (req, res) => {
-  try {
-    const userId = req.user._id;
-     console.log(userId)
-    const pharmacy = await Pharmacy.findOne({ userId });
 
-    if (pharmacy) {
-      return res.status(200).json({
-        hasPharmacy: true,
-        pharmacyId: pharmacy._id,
-        pharmacyName: pharmacy.name,
-      });
-    } else {
-      return res.status(200).json({ hasPharmacy: false });
-    }
-  } catch (error) {
-    console.error('Error checking user pharmacy:', error);
-    res.status(500).json({ error: 'حدث خطأ أثناء التحقق من صيدلية المستخدم' });
-  }
-};
-exports.getPharmacyDetails = async (req, res) => {
-  try {
-    const pharmacyId = req.params.id;
-
-    const pharmacy = await Pharmacy.findById(pharmacyId).lean();
-
-    if (!pharmacy) {
-      return res.status(404).json({ error: 'Pharmacy not found' });
-    }
-
-    const publicDetails = {
-      _id: pharmacy._id,
-      name: pharmacy.name,
-      imageUrl: pharmacy.imageUrl,
-      address: pharmacy.address,
-      phone: pharmacy.phone,
-      openingHours: pharmacy.openingHours,
-      workingDays: pharmacy.workingDays,
-      description: pharmacy.description,
-      services: pharmacy.services,
-      socialMedia: pharmacy.socialMedia,
-      website: pharmacy.website,
-      averageRating: pharmacy.averageRating,
-      isActive: pharmacy.isActive,
-      location: pharmacy.location,
-    };
-
-    res.status(200).json(publicDetails);
-  } catch (error) {
-    console.log("error in getPharmacyDetails controller ", error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
+/**
+ * @desc    Add a product to the pharmacy
+ * @route   POST /api/pharmacies/add-product
+ * @access  Private
+ */
 exports.addProductToPharmacy = async (req, res) => {
   const { productId, quantity, price } = req.body;
 
@@ -318,7 +292,32 @@ exports.addProductToPharmacy = async (req, res) => {
   }
 };
 
+exports.getMyPharmacyOrders = async (req, res) => {
+  try {
+    // نجيب الصيدلية المرتبطة بالمستخدم الحالي
+    const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
 
+    if (!pharmacy) {
+      return res.status(404).json({ message: 'لم يتم العثور على صيدلية لهذا المستخدم' });
+    }
+
+    // نجيب كل الطلبات المرتبطة بهي الصيدلية
+    const orders = await Order.find({ pharmacyId: pharmacy._id })
+      .populate('userId', 'name email') // معلومات المستخدم يلي عامل الطلب
+      .populate('items.productId', 'name price') // معلومات المنتجات داخل الطلب
+      .sort({ createdAt: -1 }); // الأحدث أولاً
+
+    res.status(200).json({ orders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'حدث خطأ أثناء جلب الطلبات' });
+  }
+};
+/**
+ * @desc    Find nearby pharmacies based on geolocation
+ * @route   GET /api/pharmacies/nearby
+ * @access  Public
+ */
 exports.findNearbyPharmacies = async (req, res) => {
   const { longitude, latitude, maxDistance = 5000 } = req.query;
 
@@ -341,6 +340,12 @@ exports.findNearbyPharmacies = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+/**
+ * @desc    Create a new product
+ * @route   POST /api/pharmacies/create-product
+ * @access  Private
+ */
 exports.createProduct = async (req, res) => {
   const { name, type, category, sub_category, brand, description, manufacturer, imageUrl, price } = req.body;
 
@@ -371,6 +376,9 @@ exports.createProduct = async (req, res) => {
     console.log("error in createProduct controller ", error)
   }
 };
+
+
+
 exports.getPharmacyMedicines = async (req, res) => {
   try {
     const pharmacyId = req.params.id;
@@ -402,78 +410,3 @@ exports.getPharmacyMedicines = async (req, res) => {
     res.status(500).json({ error: 'خطأ أثناء جلب الأدوية من الصيدلية' });
   }
 };
-exports.searchMedicineInPharmacy = async (req, res) => {
-  try {
-    const { pharmacyId } = req.params;
-    const { name } = req.query;
-
-    if (!name) {
-      return res.status(400).json({ message: 'يرجى تحديد اسم الدواء للبحث' });
-    }
-
-    const pharmacy = await Pharmacy.findById(pharmacyId).populate({
-      path: 'medicines.medicineId',
-      select: 'name imageUrl',
-      match: {
-        name: { $regex: name, $options: 'i' }, // بحث غير حساس لحالة الأحرف
-      },
-    });
-
-    if (!pharmacy) {
-      return res.status(404).json({ message: 'لم يتم العثور على صيدلية' });
-    }
-
-    // استخراج الأدوية اللي تم مطابقة اسمها
-    const matchedMedicines = pharmacy.medicines
-      .filter(med => med.medicineId) // لأن populate يرجع null لو ما طابق
-      .map(med => ({
-        id: med.medicineId._id,
-        name: med.medicineId.name,
-        imageUrl: med.medicineId.imageUrl,
-        price: med.price,
-      }));
-
-    res.status(200).json({ medicines: matchedMedicines });
-  } catch (error) {
-    console.error('خطأ أثناء البحث عن دواء في صيدلية:', error);
-    res.status(500).json({ error: 'حدث خطأ أثناء البحث' });
-  }
-};
- 
-
-// exports.getPharmacyMedicines = async (req, res) => {
-//   const { pharmacyId } = req.params;
-
-//   try {
-//     const pharmacy = await Pharmacy.findById(pharmacyId)
-//       .populate({
-//         path: 'medicines.medicineId',
-//         select: 'name imageUrl description category price',
-//       })
-//       .exec();
-
-//     if (!pharmacy) {
-//       return res.status(404).json({ error: 'الصيدلية غير موجودة' });
-//     }
-
-//     const medicines = pharmacy.medicines.map(medicine => ({
-//       medicineId: medicine.medicineId._id,
-//       name: medicine.medicineId.name,
-//       imageUrl: medicine.medicineId.imageUrl,
-//       description: medicine.medicineId.description,
-//       category: medicine.medicineId.category,
-//       quantity: medicine.quantity,
-//       price: medicine.price,
-//     }));
-
-//     res.status(200).json({
-//       pharmacyId: pharmacy._id,
-//       pharmacyName: pharmacy.name,
-//       medicines,
-//       totalMedicines: medicines.length,
-//     });
-//   } catch (error) {
-//     console.error('خطأ بجلب أدوية الصيدلية:', error);
-//     res.status(500).json({ error: 'حدث خطأ أثناء جلب أدوية الصيدلية' });
-//   }
-// };
