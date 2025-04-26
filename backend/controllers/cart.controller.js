@@ -34,9 +34,7 @@ exports.addToCart = async (req, res) => {
 // جلب سلة المستخدم
 exports.getCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.user.id })
-      .populate('items.productId', 'name price')
-      .populate('items.pharmacyId', 'name');
+    const cart = await Cart.findOne({ userId: req.user.id });
 
     if (!cart) {
       return res.status(200).json({ message: 'Cart is empty', items: [] });
@@ -47,6 +45,7 @@ exports.getCart = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // تحديث كمية منتج في السلة
 exports.updateCartItem = async (req, res) => {

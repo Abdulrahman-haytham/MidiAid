@@ -3,48 +3,108 @@ const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const Pharmacy = require('../models/Pharmacy');
 
+
 exports.createOrder = async (req, res) => {
   try {
     const { pharmacyName, orderType, deliveryAddress } = req.body;
-    const pharmacySlug = slugify(pharmacyName, { lower: true, strict: true });
-    const pharmacy = await Pharmacy.findOne({ slug: pharmacySlug });
 
-    if (!pharmacy) return res.status(404).json({ error: 'Pharmacy not found' });
-
-    const cart = await Cart.findOne({ userId: req.user.id }).populate('items.productId');
-    if (!cart || cart.items.length === 0) return res.status(400).json({ error: 'Cart is empty' });
-
-    if (orderType === 'delivery' && !deliveryAddress) {
-      return res.status(400).json({ error: 'Delivery address is required' });
+    if (!pharmacyName || !orderType) {
+        return res.status(400).json({ error: 'Pharmacy name and order type are required.' });
     }
 
-    const items = cart.items.filter((item) => item.pharmacyId.toString() === pharmacy._id.toString());
-    if (items.length === 0) return res.status(400).json({ error: 'No items from this pharmacy' });
+    if (orderType === 'delivery' && !deliveryAddress) {
+      return res.status(400).json({ error: 'Delivery address is required for delivery orders.' });
+    }
 
-    const totalPrice = items.reduce((sum, item) => sum + item.quantity * (item.productId?.price || 0), 0);
+    const pharmacySlug = slugify(pharmacyName, { lower: true, strict: true });
+    const pharmacy = await Pharmacy.findOne({ slug: pharmacySlug });
+    if (!pharmacy) {
+      return res.status(404).json({ error: `Pharmacy "${pharmacyName}" not found.` });
+    }
+
+    const cart = await Cart.findOne({ userId: req.user.id }); 
+
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).json({ error: 'Your cart is empty.' });
+    }
+
+    const validPharmacyItems = [];
+    let totalPrice = 0;
+
+    for (const cartItem of cart.items) {
+        if (cartItem.pharmacyId && cartItem.pharmacyId.toString() === pharmacy._id.toString()) {
+            const pharmacyMedicine = pharmacy.medicines.find(med =>
+                med._id && med._id.toString() === cartItem.productId.toString()
+            );
+
+            if (pharmacyMedicine) {
+                const itemPrice = pharmacyMedicine.price || 0;
+                const quantity = cartItem.quantity || 0; // الكمية من السلة
+                const itemTotalPrice = quantity * itemPrice;
+
+                validPharmacyItems.push({
+                    cartItemId: cartItem._id, 
+                    productId: cartItem.productId, 
+                    quantity: quantity,
+                    pharmacyId: cartItem.pharmacyId,
+                    price: itemPrice, // سعر الدواء في هذه الصيدلية
+                });
+                totalPrice += itemTotalPrice; // إضافة سعر العنصر إلى المجموع الكلي
+            }
+        }
+    }
+
+    if (validPharmacyItems.length === 0) {
+      return res.status(400).json({ error: `No valid items from ${pharmacyName} found in your cart to create an order.` });
+    }
+
+    const orderItemsData = validPharmacyItems.map(item => ({
+      productId: item.productId,
+
+      quantity: item.quantity,
+      pharmacyId: item.pharmacyId,
+      // priceAtOrder: item.price
+    }));
 
     const order = new Order({
       userId: req.user.id,
       pharmacyId: pharmacy._id,
-      items,
+      items: orderItemsData, // استخدم البيانات المجهزة
       orderType,
       deliveryAddress: orderType === 'delivery' ? deliveryAddress : null,
-      totalPrice,
+      totalPrice: totalPrice, // استخدم المجموع المحسوب
       status: 'pending',
     });
 
     await order.save();
-    cart.items = cart.items.filter(
-      (item) => item.pharmacyId.toString() !== pharmacy._id.toString()
-    );
-    await cart.save();
+
+    const orderedCartItemIds = validPharmacyItems.map(item => item.cartItemId.toString());
+     cart.items = cart.items.filter(item =>
+         !orderedCartItemIds.includes(item._id.toString()) 
+     );
     
-    res.status(201).json({ message: 'Order created successfully', order });
+    await cart.save();
+
+    res.status(201).json({
+      message: 'Order created successfully.',
+      order: {
+          _id: order._id,
+          userId: order.userId,
+          pharmacyId: order.pharmacyId,
+          items: order.items,
+          orderType: order.orderType,
+          deliveryAddress: order.deliveryAddress,
+          totalPrice: order.totalPrice,
+          status: order.status,
+          createdAt: order.createdAt,
+      }
+    });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: 'Failed to create order.', details: error.message });
   }
 };
-
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -78,6 +138,8 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 
 exports.getPharmacyOrders = async (req, res) => {
   try {
