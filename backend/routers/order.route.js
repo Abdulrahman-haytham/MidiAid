@@ -8,7 +8,7 @@ const { validationResult } = require('express-validator');
 
 const validate = require('../middlewares/validate'); 
 // استيراد الدالة
-router.post('/create', isAuthenticated, orderValidator, validate, OrderController.createOrder);
+router.post('/create', isAuthenticated, OrderController.createOrder);
 router.put('/:orderId/status', isAuthenticated, orderIdValidator, validate, OrderController.updateOrderStatus);
 router.get('/pharmacy-orders', isAuthenticated, hasRole('pharmacist'), OrderController.getPharmacyOrders);
 router.get('/my-orders', isAuthenticated, OrderController.getUserOrders);

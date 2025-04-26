@@ -276,3 +276,69 @@ exports.createAdmin = async (req, res) => {
     }
 };
 
+
+
+// ... existing code ...
+
+// طلب إعادة تعيين كلمة المرور
+exports.requestPasswordReset = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: 'Email is required' });
+
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // إنشاء رمز إعادة تعيين كلمة المرور
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // صالح لمدة ساعة واحدة
+
+        // تخزين رمز إعادة التعيين المشفر في قاعدة البيانات
+        user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        user.resetPasswordExpires = resetTokenExpiry;
+        await user.save();
+
+        // إرسال رابط إعادة تعيين كلمة المرور عبر البريد الإلكتروني
+        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        await sendEmail({
+            email: user.email,
+            subject: 'Password Reset Request',
+            message: `You requested a password reset. Please click on the link to reset your password: ${resetUrl}\nThis link is valid for 1 hour.`
+        });
+
+        res.status(200).json({ message: 'Password reset email sent' });
+    } catch (error) {
+        errorHandler(res, error, 'Password reset request error');
+    }
+};
+
+// إعادة تعيين كلمة المرور باستخدام الرمز
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token, password } = req.body;
+        if (!token || !password) return res.status(400).json({ message: 'Token and new password are required' });
+
+        // تشفير الرمز للمقارنة مع القيمة المخزنة
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        // البحث عن المستخدم بواسطة الرمز المشفر والتحقق من صلاحيته
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+
+        // تحديث كلمة المرور وإزالة بيانات إعادة التعيين
+        user.password = await bcrypt.hash(password, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.status(200).json({ message: 'Password reset successful' });
+    } catch (error) {
+        errorHandler(res, error, 'Password reset error');
+    }
+};
+
+// ... existing code ...

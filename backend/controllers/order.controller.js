@@ -34,6 +34,11 @@ exports.createOrder = async (req, res) => {
     });
 
     await order.save();
+    cart.items = cart.items.filter(
+      (item) => item.pharmacyId.toString() !== pharmacy._id.toString()
+    );
+    await cart.save();
+    
     res.status(201).json({ message: 'Order created successfully', order });
   } catch (error) {
     res.status(500).json({ error: error.message });

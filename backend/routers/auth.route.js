@@ -19,5 +19,6 @@ router.get('/', isAuthenticated, hasRole('admin'), authController.getAllUsers);
 router.put('/users/:id', isAuthenticated, userValidator.updateUser, validate, authController.updateUser);
 router.delete('/users/:id', isAuthenticated, authController.deleteUser);
 router.post('/create-admin', authController.createAdmin);
-
+// router.post('/request-password-reset', authController.requestPasswordReset);
+// router.post('/reset-password', authController.resetPassword);
 module.exports = router;
