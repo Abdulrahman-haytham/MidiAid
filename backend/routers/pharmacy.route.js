@@ -22,5 +22,7 @@ router.get('/getPharmacyDetails/:id',pharmacyController.getPharmacyDetails);
 router.post('/add-product', isAuthenticated, hasRole('pharmacist'), pharmacyController.addProductToPharmacy);
 router.get('/nearby', pharmacyController.findNearbyPharmacies);
 router.post('/create-product', isAuthenticated, hasRole('pharmacist'), pharmacyController.createProduct);
+router.get('/getPharmacyNamefromcart', isAuthenticated, pharmacyController.getPharmacyNamefromcart);
+
 // router.get('/getPharmacyMedicines/:pharmacyId', pharmacyController.getPharmacyMedicines);
 module.exports = router;

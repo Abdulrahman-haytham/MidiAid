@@ -5,6 +5,7 @@ const User = require('../models/user');
 const { validationResult } = require('express-validator');
 const slugify = require('slugify');
 const Order = require('../models/Order');
+const Cart=require('../models/Cart')
 
 exports.createPharmacy = async (req, res) => {
   const errors = validationResult(req);
@@ -477,3 +478,39 @@ exports.searchMedicineInPharmacy = async (req, res) => {
 //     res.status(500).json({ error: 'حدث خطأ أثناء جلب أدوية الصيدلية' });
 //   }
 // };
+
+exports.getPharmacyNamefromcart= async (req, res) => {
+  try {
+    // جلب معرف المستخدم من التوكن (يتم إضافته بواسطة authMiddleware)
+    const userId = req.user.id;
+
+    // البحث عن السلة الخاصة بالمستخدم
+    const cart = await Cart.findOne({ userId });
+
+    // التحقق مما إذا كانت السلة موجودة
+    if (!cart || cart.items.length === 0) {
+      return res.status(404).json({ message: 'السلة فارغة أو غير موجودة' });
+    }
+
+    // استخراج معرفات الصيدليات من عناصر السلة
+    const pharmacyIds = [...new Set(cart.items.map(item => item.pharmacyId.toString()))];
+
+    // جلب أسماء الصيدليات بناءً على المعرفات
+    const pharmacies = await Pharmacy.find(
+      { _id: { $in: pharmacyIds } },
+      { name: 1, _id: 0 } // نختار حقل الاسم فقط
+    );
+
+    // تحويل النتيجة إلى مصفوفة تحتوي على الأسماء فقط
+    const pharmacyNames = pharmacies.map(pharmacy => pharmacy.name);
+
+    // إرجاع أسماء الصيدليات
+    res.status(200).json({
+      message: 'تم جلب أسماء الصيدليات بنجاح',
+      pharmacies: pharmacyNames,
+    });
+  } catch (error) {
+    console.error('خطأ في جلب أسماء الصيدليات:', error);
+    res.status(500).json({ message: 'خطأ في الخادم' });
+  }
+}

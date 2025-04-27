@@ -106,38 +106,69 @@ exports.createOrder = async (req, res) => {
   }
 };
 exports.updateOrderStatus = async (req, res) => {
+
   try {
-    const { status } = req.body;
-    const order = await Order.findById(req.params.orderId);
-    if (!order) return res.status(404).json({ error: 'Order not found' });
+     const { status } = req.body;
+     const order = await Order.findById(req.params.orderId);
+     if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+     }
 
-    const validStatuses = ['accepted', 'rejected', 'preparing', 'in_delivery', 'delivered', 'canceled'];
-    if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status update' });
-
-    if (req.user.role === 'user' && status === 'canceled') {
-      if (order.status !== 'pending') return res.status(400).json({ error: 'You can only cancel pending orders' });
-      order.status = 'canceled';
-    } else if (req.user.role === 'pharmacist') {
-      if (['accepted', 'rejected'].includes(status) && order.status !== 'pending') {
-        return res.status(400).json({ error: 'Order cannot be updated at this stage' });
+     const validStatuses = ['accepted', 'rejected', 'preparing', 'in_delivery', 'delivered', 'canceled'];
+     if (!validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status update' });
+     }
+     // تحقق من دور المستخدم
+     if (req.user.type === 'user') {
+      // المستخدم العادي فقط يمكنه إلغاء طلب قيد الانتظار
+      if (status === 'canceled') {
+        if (order.status !== 'pending') {
+          return res.status(400).json({ error: 'You can only cancel pending orders' });
+        }
+        order.status = 'canceled';
+      } else {
+        return res.status(403).json({ error: 'Users can only cancel their pending orders' });
       }
-      if (['preparing', 'in_delivery', 'delivered'].includes(status) && !['accepted', 'preparing', 'in_delivery'].includes(order.status)) {
-        return res.status(400).json({ error: 'Order must be accepted first' });
+     } 
+     else if (req.user.type === 'pharmacist') {
+      // الصيدلي يمكنه قبول، رفض، تحضير، توصيل وتسليم الطلبات
+      if (['accepted', 'rejected'].includes(status)) {
+        if (order.status !== 'pending') {
+          return res.status(400).json({ error: 'Order cannot be accepted or rejected at this stage' });
+        }
+        order.status = status;
+      } 
+      else if (['preparing', 'in_delivery', 'delivered'].includes(status)) {
+        if (!['accepted', 'preparing', 'in_delivery'].includes(order.status)) {
+          return res.status(400).json({ error: 'Order must be accepted first before moving to the next stages' });
+        }
+        order.status = status;
+      } 
+      else if (status === 'canceled') {
+        if (['preparing', 'in_delivery', 'delivered'].includes(order.status)) {
+          return res.status(400).json({ error: 'Cannot cancel order at this stage' });
+        }
+        order.status = 'canceled';
       }
-      if (status === 'canceled' && ['preparing', 'in_delivery', 'delivered'].includes(order.status)) {
-        return res.status(400).json({ error: 'Cannot cancel order at this stage' });
+      else {
+        return res.status(400).json({ error: 'Invalid status change by pharmacist' });
       }
-      order.status = status;
-    } else {
-      return res.status(403).json({ error: 'Unauthorized to update this order' });
+     } 
+     else {
+      // إذا الدور مو user أو pharmacist
+      return res.status(403).json({ error: 'Unauthorized type to update this order' });
     }
 
+    // حفظ التعديلات
     await order.save();
     res.status(200).json({ message: `Order updated to ${status}`, order });
+
   } catch (error) {
+    console.error('Error updating order status:', error);
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 
