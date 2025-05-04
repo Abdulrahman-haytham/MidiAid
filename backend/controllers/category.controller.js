@@ -1,6 +1,6 @@
 const Category = require('../models/Category');
 const slugify = require('slugify');
-
+const Product=require('../models/Product');
 // إنشاء فئة جديدة
 exports.createCategory = async (req, res) => {
   try {
@@ -97,5 +97,28 @@ exports.deleteCategoryByName = async (req, res) => {
     res.status(200).json({ message: 'Category deleted successfully', category });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete category', error: error.message });
+  }
+};
+
+exports.getProductsByCategory = async (req, res) => {
+  try {
+    const categoryId = req.params.categoryId;
+
+    if (!categoryId) {
+      return res.status(400).json({ message: 'Category ID is required in the URL parameters' });
+    }
+
+    const products = await Product.find({ category: categoryId });
+
+    res.status(200).json(products);
+
+  } catch (error) {
+    console.error('Error fetching products by category:', error);
+
+
+    res.status(500).json({
+      message: 'Failed to fetch products by category',
+      error: error.message 
+    });
   }
 };

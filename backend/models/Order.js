@@ -18,6 +18,11 @@ const orderSchema = new mongoose.Schema({
         ref: 'Product',
         required: true,
       },
+      name: {
+        type: String,
+        required: true, // أو false إذا لم تكن تضمن وجوده دائماً
+        trim: true,
+      },
       quantity: {
         type: Number,
         required: true,

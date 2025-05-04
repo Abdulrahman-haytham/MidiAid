@@ -6,7 +6,7 @@ const { validationResult } = require('express-validator');
 const slugify = require('slugify');
 const Order = require('../models/Order');
 const Cart=require('../models/Cart')
-
+const Category=require('../models/Category')
 exports.createPharmacy = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -342,19 +342,28 @@ exports.findNearbyPharmacies = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 exports.createProduct = async (req, res) => {
-  const { name, type, category, sub_category, brand, description, manufacturer, imageUrl, price } = req.body;
+  const { name, type, categoryName, sub_category, brand, description, manufacturer, imageUrl, price } = req.body;
 
   try {
+    // Verify user exists
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    // Find category by name
+    const category = await Category.findOne({ name: categoryName });
+    if (!category) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+
+    // Create new product
     const newProduct = new Product({
       name,
       type,
-      category,
+      category: category._id,
       sub_category,
       brand,
       description,
@@ -362,14 +371,47 @@ exports.createProduct = async (req, res) => {
       imageUrl,
       price,
       createdBy: req.user.id,
-      isAdminCreated: user.role === 'admin',
+      isAdminCreated: user.type === 'admin',
     });
 
     await newProduct.save();
-    res.status(201).json({ message: 'Product created successfully', product: newProduct });
+
+    // Find or create pharmacy for user
+    let pharmacy = await Pharmacy.findOne({ userId: req.user.id });
+    
+    if (!pharmacy) {
+      // Create new pharmacy if doesn't exist
+      pharmacy = new Pharmacy({
+        userId: req.user.id,
+        medicines: [{
+          medicineId: newProduct._id,
+          quantity: 1, // Default quantity
+          price: price
+        }]
+      });
+    } else {
+      // Add medicine to existing pharmacy
+      pharmacy.medicines.push({
+        medicineId: newProduct._id,
+        quantity: 1, // Default quantity
+        price: price
+      });
+    }
+
+    await pharmacy.save();
+
+    res.status(201).json({ 
+      message: 'Product created and added to pharmacy successfully', 
+      product: newProduct,
+      pharmacy: pharmacy
+    });
+
   } catch (error) {
-    res.status(500).json({ error: error.message });
-    console.log("error in createProduct controller ", error)
+    console.error("Error in createProduct controller:", error);
+    res.status(500).json({ 
+      error: 'Server error',
+      details: error.message 
+    });
   }
 };
 exports.getPharmacyMedicines = async (req, res) => {

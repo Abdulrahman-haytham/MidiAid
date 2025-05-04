@@ -12,10 +12,7 @@ const productValidator = [
     .isIn(['Medicine', 'Medical Supply', 'Personal Care', 'Vitamin', 'Other'])
     .withMessage('Invalid product type'),
 
-  // التحقق من أن الفئة موجودة
-  body('category')
-    .notEmpty().withMessage('Category is required')
-    .isMongoId().withMessage('Invalid category ID format'),
+  
 
   // التحقق من أن السعر غير فارغ وصحيح
   body('price')

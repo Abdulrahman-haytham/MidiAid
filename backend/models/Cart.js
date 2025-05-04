@@ -13,16 +13,20 @@ const cartSchema = new mongoose.Schema({
         ref: 'Product',
         required: true,
       },
-      quantity: {
-        type: Number,
-        required: true,
-        min: [1, 'Quantity cannot be less than 1'],
-        default: 1,
-      },
       pharmacyId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Pharmacy',
-        required: true, // كل منتج ينتمي لصيدلية معينة
+        required: true,
+      },
+      quantity: {
+        type: Number,
+        required: true,
+        min: [1, 'Quantity must be at least 1'],
+      },
+      productName: {
+        type: String,
+        required: true,
+        trim: true,
       },
     },
   ],

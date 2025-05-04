@@ -3,16 +3,28 @@ const Product = require('../models/Product');
 const User = require('../models/user');
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const Category=require("../models/Category")
 
-// Create a new product
+
 exports.createProduct = async (req, res) => {
   const user = req.user;
   if (!user) {
-    return res.status(404).json({ message: 'User not found' });
+    return res.status(401).json({ message: 'Authentication required: User not found' });
   }
 
   try {
-    const { name, type, category, sub_category, brand, description, manufacturer, imageUrl, price } = req.body;
+    const {
+      name,
+      type,
+      categoryName,
+      sub_category,
+      brand,
+      description,
+      manufacturer,
+      imageUrl,
+      price
+    } = req.body;
+
 
     if (!name) {
       return res.status(400).json({ message: 'Product name is required' });
@@ -20,27 +32,51 @@ exports.createProduct = async (req, res) => {
 
     const existingProduct = await Product.findOne({ name });
     if (existingProduct) {
-      return res.status(400).json({ message: 'Product already exists' });
+      return res.status(400).json({ message: 'Product already exists with this name' });
     }
+
+
+    if (!categoryName) {
+      return res.status(400).json({ message: 'Category name is required' });
+    }
+
+    const foundCategory = await Category.findOne({ name: categoryName });
+
+    if (!foundCategory) {
+      return res.status(400).json({ message: `Category with name "${categoryName}" not found` });
+    }
+
 
     const product = new Product({
       name,
       type,
-      category,
+      category: foundCategory._id, 
       sub_category,
       brand,
       description,
       manufacturer,
       imageUrl,
       price,
-      createdBy: user._id,
+      createdBy: user._id, 
       isAdminCreated: user.role === 'admin',
     });
 
-    await product.save();
-    res.status(201).json({ message: 'Product created successfully', product });
+
+    const createdProduct = await product.save();
+
+
+    res.status(201).json({
+      message: 'Product created successfully',
+      product: createdProduct // إرجاع المنتج الذي تم إنشاؤه بالكامل
+    });
+
   } catch (error) {
-    res.status(500).json({ message: 'Failed to create product', error: error.message });
+    console.error('Error creating product:', error);
+
+    res.status(500).json({
+      message: 'Failed to create product',
+      error: error.message 
+    });
   }
 };
 
@@ -193,9 +229,6 @@ exports.getFavoriteProducts = async (req, res) => {
         res.status(500).json({ message: 'حدث خطأ ما', error: error.message });
     }
   }
-
-  
-
 
 // Search products based on user's location
 exports.searchProductsByLocation = async (req, res) => {

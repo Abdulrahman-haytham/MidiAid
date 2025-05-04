@@ -15,5 +15,6 @@ router.get('/:id', categoryController.getCategoryById);
 router.get('/search/:name', categoryController.searchCategory);
 router.delete('/delete/:id', isAuthenticated, hasRole('admin'), categoryController.deleteCategoryById);
 router.delete('/delete-by-name/:name', isAuthenticated, hasRole('admin'), categoryController.deleteCategoryByName);
+router.get('/getProductsByCategory/:categoryId', categoryController.getProductsByCategory);
 
 module.exports = router;
