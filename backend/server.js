@@ -17,7 +17,7 @@ const orderRoutes = require('./routers/order.route');
 const pharmacyRoutes = require('./routers/pharmacy.route');
 const productRoutes = require('./routers/product.route');
 const usedMedicineRoutes = require('./routers/usedMedicine.route');
-
+// const emergencyOrder=require('./controllers/emergencyOrderController')
 app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors());
@@ -33,6 +33,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/pharmacies', pharmacyRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/used-medicines', usedMedicineRoutes);
+// app.use('/api/emergencyOrder', emergencyOrder);
+
 
 app.get('/', (req, res) => {
     res.status(200).send('🚀 Server is running successfully!');

@@ -15,6 +15,8 @@ router.put('/:id', isAuthenticated, hasRole('admin'), productIdValidator, valida
 router.delete('/:id', isAuthenticated, hasRole('admin'), productIdValidator, validate, productController.deleteProduct);
 router.get('/search/:name', productSearchValidator, validate, productController.searchProductBySlug);
 router.post('/favorites/:productId', isAuthenticated,  productController.addToFavorites);
+router.post('/toggleFavorite/:productId', isAuthenticated,  productController.toggleFavorite);
+
 router.get('/favorites/get', isAuthenticated, productController.getFavoriteProducts);
 // router.post('/favorites/remove', isAuthenticated, productController.removeFromFavorites);
 router.get('/search', isAuthenticated, productSearchValidator, validate, productController.searchProductsByLocation);

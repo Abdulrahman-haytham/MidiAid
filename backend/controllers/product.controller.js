@@ -209,6 +209,34 @@ exports.addToFavorites = async (req, res) => {
   }
 };
 
+// Toggle favorite (add/remove)
+exports.toggleFavorite = async (req, res) => {
+  try {
+    const user = req.user;
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const product = await Product.findById(req.params.productId);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    const index = user.favorites.indexOf(product._id);
+    let message = '';
+
+    if (index === -1) {
+      user.favorites.push(product._id);
+      message = 'Product added to favorites';
+    } else {
+      user.favorites.splice(index, 1);
+      message = 'Product removed from favorites';
+    }
+
+    await user.save();
+
+    res.status(200).json({ message, favorites: user.favorites });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 // Get all favorite products for the current user
 exports.getFavoriteProducts = async (req, res) => {
     try {
