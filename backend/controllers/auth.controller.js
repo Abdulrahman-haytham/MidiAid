@@ -161,7 +161,6 @@ exports.updateCurrentUser = async (req, res) => {
   };
   
 
-// جلب جميع المستخدمين (للمدير فقط)
 exports.getAllUsers = async (req, res) => {
     try {
         const users = await User.find().select('-password');
@@ -171,7 +170,6 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-// تعديل بيانات المستخدم
 exports.updateUser = async (req, res) => {
     try {
         const { type, username, email, password, firstName, lastName, phone, address, location } = req.body;
@@ -221,20 +219,16 @@ exports.createAdmin = async (req, res) => {
     try {
         const { secret_key, username, email, password, firstName, lastName, phone, address, location } = req.body;
 
-        // التحقق من مفتاح السر
         if (!secret_key || secret_key !== process.env.SECRET_KEY_ADMIN) {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        // إذا كان المفتاح صحيحًا، حول النوع إلى "admin"
         const type = 'admin';
 
-        // التحقق من إدخال جميع البيانات المطلوبة
         if (!username || !email || !password || !firstName || !lastName || !phone || !address || !location) {
             return res.status(400).json({ message: 'All fields are required' });
         }
 
-        // التأكد من أن البريد الإلكتروني أو اسم المستخدم غير مستخدم مسبقًا
         const [existingEmail, existingUsername] = await Promise.all([
             User.findOne({ email: email.toLowerCase() }),
             User.findOne({ username: username.toLowerCase() })
@@ -247,7 +241,6 @@ exports.createAdmin = async (req, res) => {
         const verificationCode = crypto.randomInt(100000, 999999).toString();
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // إنشاء مستخدم جديد مع نوع "admin"
         const newUser = new User({
             username: username.toLowerCase(),
             email: email.toLowerCase(),
@@ -256,10 +249,8 @@ exports.createAdmin = async (req, res) => {
             verificationCode
         });
 
-        // حفظ المستخدم في قاعدة البيانات
         await newUser.save();
 
-        // إرسال البريد الإلكتروني باستخدام الدالة من lib/sendEmail.js
         await sendEmail({
             email: newUser.email,
             subject: 'Verification Code',
@@ -277,10 +268,6 @@ exports.createAdmin = async (req, res) => {
 };
 
 
-
-// ... existing code ...
-
-// طلب إعادة تعيين كلمة المرور
 exports.requestPasswordReset = async (req, res) => {
     try {
         const { email } = req.body;
@@ -289,16 +276,13 @@ exports.requestPasswordReset = async (req, res) => {
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // إنشاء رمز إعادة تعيين كلمة المرور
         const resetToken = crypto.randomBytes(32).toString('hex');
         const resetTokenExpiry = Date.now() + 3600000; // صالح لمدة ساعة واحدة
 
-        // تخزين رمز إعادة التعيين المشفر في قاعدة البيانات
         user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
         user.resetPasswordExpires = resetTokenExpiry;
         await user.save();
 
-        // إرسال رابط إعادة تعيين كلمة المرور عبر البريد الإلكتروني
         const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
         await sendEmail({
             email: user.email,
@@ -312,16 +296,13 @@ exports.requestPasswordReset = async (req, res) => {
     }
 };
 
-// إعادة تعيين كلمة المرور باستخدام الرمز
 exports.resetPassword = async (req, res) => {
     try {
         const { token, password } = req.body;
         if (!token || !password) return res.status(400).json({ message: 'Token and new password are required' });
 
-        // تشفير الرمز للمقارنة مع القيمة المخزنة
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-        // البحث عن المستخدم بواسطة الرمز المشفر والتحقق من صلاحيته
         const user = await User.findOne({
             resetPasswordToken: hashedToken,
             resetPasswordExpires: { $gt: Date.now() }
@@ -329,7 +310,6 @@ exports.resetPassword = async (req, res) => {
 
         if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
 
-        // تحديث كلمة المرور وإزالة بيانات إعادة التعيين
         user.password = await bcrypt.hash(password, 10);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
@@ -341,4 +321,3 @@ exports.resetPassword = async (req, res) => {
     }
 };
 
-// ... existing code ...

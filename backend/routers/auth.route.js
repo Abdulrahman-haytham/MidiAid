@@ -6,9 +6,9 @@ const authController = require('../controllers/auth.controller');
 const userValidator = require('../middlewares/validators/user.validator'); 
 const router = express.Router();
 
-const validate = require('../middlewares/validate'); // استيراد الدالة
+const validate = require('../middlewares/validate');
 
-// مسارات المصادقة
+
 router.post('/register', userValidator.register, validate, authController.register);
 router.post('/verify-email', authController.verifyEmail);
 router.post('/login', userValidator.login, validate, authController.login);

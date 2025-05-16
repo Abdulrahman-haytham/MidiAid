@@ -1,0 +1,176 @@
+erDiagram
+    %% Entities with their attributes
+
+    User {
+        ObjectId _id PK
+        string type "admin,user,pharmacist"
+        string username UK "Required"
+        string email UK "Required"
+        string password "Required"
+        string firstName "Required"
+        string lastName "Required"
+        string phone "Required"
+        boolean isVerified
+        string verificationCode
+        string address "Required"
+        Point location "Required, 2dsphere Index"
+        string license "Required for pharmacist"
+        date expiresAt "Expires After Seconds Index (for temp users if any)"
+        date createdAt
+        date updatedAt
+    }
+
+    Category {
+        ObjectId _id PK
+        string name UK "Required"
+        string slug UK
+        string image
+        date createdAt
+        date updatedAt
+    }
+
+    Product {
+        ObjectId _id PK
+        string name "Required"
+        string slug UK
+        string type "Required, Enum"
+        ObjectId category FK "Required"
+        string sub_category
+        string brand
+        string description "Required"
+        string manufacturer
+        string imageUrl "Required"
+        boolean isActive
+        number price "Required"
+        ObjectId createdBy FK "Required"
+        boolean isAdminCreated
+        date createdAt
+        date updatedAt
+    }
+
+    Pharmacy {
+        ObjectId _id PK
+        ObjectId userId FK "Required"
+        string name "Required"
+        string slug UK
+        string address "Required"
+        Point location "Required, 2dsphere Index"
+        string phone "Required"
+        string openingHours "Required"
+        string[] workingDays "Enum"
+        string imageUrl "Required"
+        string description
+        boolean isActive
+        string[] services
+        object socialMedia "Embedded"
+        string website
+        number averageRating "Derived"
+        date createdAt
+        date updatedAt
+    }
+
+    %% Embedded documents often represented as linking entities in ERDs
+
+    Pharmacy_Medicine { %% Represents items in Pharmacy.medicines array
+        ObjectId _id PK "Subdocument ID"
+        ObjectId pharmacyId FK "Parent Link (Implicit)"
+        ObjectId medicineId FK "Required"
+        number quantity "Required"
+        number price "Required"
+    }
+
+    Pharmacy_Review { %% Represents items in Pharmacy.reviews array
+         ObjectId _id PK "Subdocument ID"
+         ObjectId pharmacyId FK "Parent Link (Implicit)"
+         ObjectId userId FK "Required"
+         number rating "Required"
+    }
+
+    Order {
+        ObjectId _id PK
+        ObjectId userId FK "Required"
+        ObjectId pharmacyId FK "Required"
+        string orderType "Required, Enum"
+        string deliveryAddress "Required if delivery"
+        string status "Enum"
+        number totalPrice "Required"
+        object rating "Embedded (score, comment)"
+        date createdAt
+        date updatedAt
+    }
+
+     Order_Item { %% Represents items in Order.items array
+         ObjectId _id PK "Subdocument ID"
+         ObjectId orderId FK "Parent Link (Implicit)"
+         ObjectId productId FK "Required"
+         number quantity "Required"
+     }
+
+    UsedMedicine { %% Represents the user's medication schedule document
+        ObjectId _id PK
+        ObjectId userId FK "Required"
+        date createdAt
+        date updatedAt
+    }
+
+    UsedMedicine_Entry { %% Represents items in UsedMedicine.medicines array
+         ObjectId _id PK "Subdocument ID"
+         ObjectId usedMedicineId FK "Parent Link (Implicit)"
+         ObjectId productId FK "Required"
+         string dosage "Required"
+         string frequency "Required"
+         date startDate
+         date endDate
+         string reminderTime
+         array history "Embedded History (updatedAt, changes)"
+    }
+
+    KafuPost {
+        ObjectId _id PK
+        ObjectId userId FK "Required (Creator)"
+        string title "Required"
+        string description "Required"
+        string type "Required, Enum"
+        ObjectId medicineId FK
+        ObjectId pharmacyId FK
+        Point location "Required, 2dsphere Index"
+        string status "Enum"
+        ObjectId helperId FK "Helper User ID"
+        date expiresAt "Required"
+        date createdAt
+        date updatedAt
+    }
+
+    %% Relationships between Entities
+
+    User ||--|{ Pharmacy : manages "One User (pharmacist) manages Zero or One Pharmacy"
+    User ||--o{ Product : createdBy "One User created Zero or More Products"
+    User }o--o{ Product : favorites "Zero or More Users favorite Zero or More Products"
+
+    User ||--o{ Order : placedBy "One User placed Zero or More Orders"
+
+    User ||--o{ KafuPost : createdBy "One User created Zero or More Kafu Posts"
+    User |o--o{ KafuPost : helpedBy "One User helps Zero or More Kafu Posts (helper is optional)"
+
+    User ||--|| UsedMedicine : has_schedule "One User has Exactly One UsedMedicine document"
+
+    User ||--o{ Pharmacy_Review : wrote_review "One User wrote Zero or More Reviews"
+
+    Category ||--o{ Product : belongs_to_category "One Category includes Zero or More Products"
+
+    Pharmacy ||--o{ Order : receives "One Pharmacy receives Zero or More Orders"
+    Pharmacy ||--o{ Pharmacy_Medicine : stocks "One Pharmacy stocks Zero or More Products (via Medicine entries)"
+    Pharmacy ||--o{ Pharmacy_Review : has_review "One Pharmacy has Zero or More Reviews"
+    Pharmacy |o--o{ KafuPost : linked_in_post "One Pharmacy is linked in Zero or More Kafu Posts (link is optional)"
+
+    Product ||--o{ Pharmacy_Medicine : is_stocked_as "One Product is stocked as Zero or More Medicine entries"
+    Product ||--o{ Order_Item : is_ordered_as "One Product is ordered as Zero or More Order Items"
+    Product ||--o{ UsedMedicine_Entry : is_scheduled_as "One Product is scheduled as Zero or More Entries"
+    Product |o--o{ KafuPost : refers_to "One Product is referred to in Zero or More Kafu Posts (reference is optional)"
+
+    Order ||--o{ Order_Item : includes_item "One Order includes One or More Order Items" %% Min 1 based on controller logic check
+
+    UsedMedicine ||--o{ UsedMedicine_Entry : includes_entry "One Schedule includes Zero or More Medicine Entries"
+
+    %% Relationships involving embedded history (optional to show as separate entity)
+    UsedMedicine_Entry ||--o{ UsedMedicine_History : has_history "One Entry has Zero or More History records"
