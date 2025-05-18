@@ -4,6 +4,7 @@ const User = require('../models/user');
 const mongoose = require('mongoose');
 const slugify = require('slugify');
 const Category=require("../models/Category")
+const Pharmacy=require('../models/Pharmacy')
 
 
 exports.createProduct = async (req, res) => {
@@ -258,69 +259,166 @@ exports.getFavoriteProducts = async (req, res) => {
     }
   }
 
-// Search products based on user's location
+
+
 exports.searchProductsByLocation = async (req, res) => {
-  try {
-    const { productName } = req.query;
-    const user = await User.findById(req.user._id);
-    if (!user || !user.location) {
-      return res.status(400).json({ success: false, message: 'User location is required' });
+    try {
+        const { productName } = req.query;
+
+        // 1. Fetch user and validate location
+        const user = await User.findById(req.user._id);
+
+        if (!user || !user.location || !user.location.coordinates || user.location.coordinates.length !== 2) {
+            return res.status(400).json({ success: false, message: 'User location (coordinates) is required' });
+        }
+
+        const userCoordinates = user.location.coordinates; // [longitude, latitude]
+
+        // 2. Find the main product
+        const mainProduct = await Product.findOne({ name: { $regex: productName, $options: 'i' } });
+
+        if (!mainProduct) {
+            // If the product itself isn't found in the database, return 404 Product Not Found
+            return res.status(404).json({ success: false, message: 'Product not found in the system' });
+        }
+
+        const subCategory = mainProduct.sub_category;
+
+        // 3. Find alternative products (only need their IDs for the pipeline)
+        const alternativeProducts = await Product.find({
+            sub_category: subCategory,
+            _id: { $ne: mainProduct._id },
+        }).select('_id name');
+
+        // List of all relevant product IDs (main + alternatives)
+        const relevantProductIds = [mainProduct._id, ...alternativeProducts.map(p => p._id)];
+
+        // 4. Aggregation Pipeline to find nearby pharmacies selling relevant products
+        const pipeline = [
+            {
+                $geoNear: {
+                    near: { type: 'Point', coordinates: userCoordinates },
+                    distanceField: 'distance',
+                    maxDistance: 500000, // Max distance in meters (5 km)
+                    spherical: true,
+                },
+            },
+             {
+                 // Initial match for performance
+                 $match: { 'medicines.medicineId': { $in: relevantProductIds } }
+             },
+            {
+                $unwind: '$medicines',
+            },
+            {
+                $match: { 'medicines.medicineId': { $in: relevantProductIds } },
+            },
+            {
+                $lookup: {
+                    from: 'products', // Collection name for Product model
+                    localField: 'medicines.medicineId',
+                    foreignField: '_id',
+                    as: 'productDetails',
+                },
+            },
+            {
+                $unwind: '$productDetails',
+            },
+            {
+                $group: {
+                    _id: '$medicines.medicineId', // Grouping key: product ID
+                    productDetails: { $first: '$productDetails' },
+                    pharmacies: {
+                        $push: {
+                            pharmacyId: '$_id', // Original pharmacy _id
+                            pharmacyName: '$name', // Pharmacy name
+                            distance: '$distance', // Distance calculated by $geoNear
+                            price: '$medicines.price', // Price of THIS product in THIS pharmacy
+                            pharmacyLocation: '$location' // Include location if needed
+                        },
+                    },
+                },
+            },
+            {
+                 $project: {
+                     _id: 0,
+                     product: {
+                         _id: '$productDetails._id',
+                         name: '$productDetails.name',
+                         // Add other product fields needed
+                         type: '$productDetails.type',
+                         category: '$productDetails.category',
+                         sub_category: '$productDetails.sub_category',
+                         brand: '$productDetails.brand',
+                         description: '$productDetails.description',
+                         manufacturer: '$productDetails.manufacturer',
+                         imageUrl: '$productDetails.imageUrl',
+                         price: '$productDetails.price', // Default product price
+                         createdAt: '$productDetails.createdAt',
+                         updatedAt: '$productDetails.updatedAt',
+                         slug: '$productDetails.slug',
+                         __v: '$productDetails.__v'
+                     },
+                     pharmacies: 1
+                 }
+            }
+        ];
+
+        const productResults = await Pharmacy.aggregate(pipeline);
+
+        // --- Debugging Output ---
+        console.log("Aggregation Results:", JSON.stringify(productResults, null, 2));
+        // -----------------------
+
+        // 5. Structure the final response based on aggregation results
+        // Now, if productResults is empty, we know *no* relevant products were found in nearby pharmacies
+
+        if (!productResults || productResults.length === 0) {
+             // If the aggregation pipeline returned no results, it means
+             // the product or its alternatives were not found in any nearby pharmacy.
+             return res.status(404).json({
+                 success: false,
+                 message: `No nearby pharmacies found selling "${mainProduct.name}" or its alternatives within 5 km.`
+                 // Or a more general message if you prefer:
+                 // message: 'No nearby pharmacies found selling the requested product or its alternatives.'
+             });
+        }
+
+        // If we reach here, productResults is not empty, meaning at least one product
+        // (main or alternative) was found in at least one nearby pharmacy.
+
+        // Find the result object for the main product (if it exists in the aggregation results)
+        const mainProductResult = productResults.find(item =>
+            item.product && item.product._id && item.product._id.equals(mainProduct._id)
+        );
+
+        // Filter the result objects for alternative products
+        const alternativeResults = productResults.filter(item =>
+             item.product && item.product._id && !item.product._id.equals(mainProduct._id)
+        );
+
+        const responseData = {};
+
+        // Add mainProduct to data IF it was found by the pipeline
+        if (mainProductResult) {
+            responseData.mainProduct = mainProductResult;
+        }
+
+        // Add alternatives array (will contain found alternatives or be empty if none were found by pipeline)
+        responseData.alternatives = alternativeResults || [];
+
+
+        const response = {
+            success: true,
+            // A positive message indicating that *some* results were found
+            message: 'Nearby products found successfully',
+            data: responseData, // Contains only products found in nearby pharmacies
+        };
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        console.error('Error in searchProductsByLocation:', error); // Log the actual error
+        res.status(500).json({ success: false, message: 'Failed to search for products', error: error.message });
     }
-
-    const { coordinates } = user.location;
-    const mainProduct = await Product.findOne({ name: { $regex: productName, $options: 'i' } });
-
-    if (!mainProduct) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
-    }
-
-    const subCategory = mainProduct.sub_category;
-    const alternativeProducts = await Product.find({
-      sub_category: subCategory,
-      _id: { $ne: mainProduct._id },
-    });
-
-    const pharmacies = await Pharmacy.find({
-      'medicines.medicineId': { $in: [mainProduct._id, ...alternativeProducts.map(p => p._id)] },
-      location: {
-        $near: {
-          $geometry: { type: 'Point', coordinates },
-          $maxDistance: 5000,
-        },
-      },
-    }).populate('medicines.medicineId', 'name price');
-
-    const response = {
-      success: true,
-      message: 'Products found successfully',
-      data: {
-        mainProduct: {
-          ...mainProduct.toObject(),
-          pharmacies: pharmacies.filter(pharmacy =>
-            pharmacy.medicines.some(med => med.medicineId._id.equals(mainProduct._id))
-          ).map(pharmacy => ({
-            pharmacyId: pharmacy._id,
-            pharmacyName: pharmacy.name,
-            distance: 'Calculated by MongoDB',
-            price: pharmacy.medicines.find(med => med.medicineId._id.equals(mainProduct._id)).price,
-          })),
-        },
-        alternatives: alternativeProducts.map(product => ({
-          ...product.toObject(),
-          pharmacies: pharmacies.filter(pharmacy =>
-            pharmacy.medicines.some(med => med.medicineId._id.equals(product._id))
-          ).map(pharmacy => ({
-            pharmacyId: pharmacy._id,
-            pharmacyName: pharmacy.name,
-            distance: 'Calculated by MongoDB',
-            price: pharmacy.medicines.find(med => med.medicineId._id.equals(product._id)).price,
-          })),
-        })),
-      },
-    };
-
-    res.status(200).json(response);
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to search for products', error: error.message });
-  }
 };

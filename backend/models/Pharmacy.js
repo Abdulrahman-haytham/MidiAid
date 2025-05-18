@@ -40,14 +40,23 @@ const pharmacySchema = new mongoose.Schema({
     trim: true,
   },
   openingHours: {
-    type: String,
-    required: [true, 'Opening hours are required'],
-    trim: true,
-  },
+  type: new mongoose.Schema({
+    morning: {
+      from: { type: String, required: true },
+      to: { type: String, required: true }
+    },
+    evening: {
+      from: { type: String, required: true },
+      to: { type: String, required: true }
+    }
+  }, { _id: false }),
+  required: true
+}
+,
   workingDays: {
     type: [String],
-    enum: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-    default: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
+    enum: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+    default: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'],
   }
 ,  
   imageUrl: {

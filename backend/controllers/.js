@@ -410,3 +410,440 @@ exports.getPharmacyMedicines = async (req, res) => {
     res.status(500).json({ error: 'خطأ أثناء جلب الأدوية من الصيدلية' });
   }
 };
+
+// Search products based on user's location
+// exports.searchProductsByLocation = async (req, res) => {
+//   try {
+//     const { productName } = req.query;
+//     const user = await User.findById(req.user._id);
+//     if (!user || !user.location) {
+//       return res.status(400).json({ success: false, message: 'User location is required' });
+//     }
+
+//     const { coordinates } = user.location;
+//     const mainProduct = await Product.findOne({ name: { $regex: productName, $options: 'i' } });
+
+//     if (!mainProduct) {
+//       return res.status(404).json({ success: false, message: 'Product not found' });
+//     }
+
+//     const subCategory = mainProduct.sub_category;
+//     const alternativeProducts = await Product.find({
+//       sub_category: subCategory,
+//       _id: { $ne: mainProduct._id },
+//     });
+
+//     const pharmacies = await Pharmacy.find({
+//       'medicines.medicineId': { $in: [mainProduct._id, ...alternativeProducts.map(p => p._id)] },
+//       location: {
+//         $near: {
+//           $geometry: { type: 'Point', coordinates },
+//           $maxDistance: 5000,
+//         },
+//       },
+//     }).populate('medicines.medicineId', 'name price');
+
+//     const response = {
+//       success: true,
+//       message: 'Products found successfully',
+//       data: {
+//         mainProduct: {
+//           ...mainProduct.toObject(),
+//           pharmacies: pharmacies.filter(pharmacy =>
+//             pharmacy.medicines.some(med => med.medicineId._id.equals(mainProduct._id))
+//           ).map(pharmacy => ({
+//             pharmacyId: pharmacy._id,
+//             pharmacyName: pharmacy.name,
+//             distance: 'Calculated by MongoDB',
+//             price: pharmacy.medicines.find(med => med.medicineId._id.equals(mainProduct._id)).price,
+//           })),
+//         },
+//         alternatives: alternativeProducts.map(product => ({
+//           ...product.toObject(),
+//           pharmacies: pharmacies.filter(pharmacy =>
+//             pharmacy.medicines.some(med => med.medicineId._id.equals(product._id))
+//           ).map(pharmacy => ({
+//             pharmacyId: pharmacy._id,
+//             pharmacyName: pharmacy.name,
+//             distance: 'Calculated by MongoDB',
+//             price: pharmacy.medicines.find(med => med.medicineId._id.equals(product._id)).price,
+//           })),
+//         })),
+//       },
+//     };
+
+//     res.status(200).json(response);
+//   } catch (error) {
+//     res.status(500).json({ success: false, message: 'Failed to search for products', error: error.message });
+//   }
+// };
+
+// Assume Mongoose models are imported like this:
+// const User = require('../models/User');
+// const Product = require('../models/Product');
+// const Pharmacy = require('../models/Pharmacy');
+
+// Also assume relevant dependencies like express or others are handled elsewhere
+
+// exports.searchProductsByLocation = async (req, res) => {
+//     try {
+//         const { productName } = req.query;
+
+//         // 1. Fetch user and validate location
+//         const user = await User.findById(req.user._id);
+
+//         if (!user || !user.location || !user.location.coordinates || user.location.coordinates.length !== 2) {
+//             return res.status(400).json({ success: false, message: 'User location (coordinates) is required' });
+//         }
+
+//         // MongoDB stores coordinates as [longitude, latitude]
+//         const userCoordinates = user.location.coordinates;
+
+//         // 2. Find the main product
+//         const mainProduct = await Product.findOne({ name: { $regex: productName, $options: 'i' } });
+
+//         if (!mainProduct) {
+//             return res.status(404).json({ success: false, message: 'Product not found' });
+//         }
+
+//         const subCategory = mainProduct.sub_category;
+
+//         // 3. Find alternative products (only need their IDs for the pipeline)
+//         const alternativeProducts = await Product.find({
+//             sub_category: subCategory,
+//             _id: { $ne: mainProduct._id },
+//         }).select('_id name'); // Select only necessary fields to save memory/bandwidth
+
+//         // List of all relevant product IDs (main + alternatives) for filtering in the pipeline
+//         const relevantProductIds = [mainProduct._id, ...alternativeProducts.map(p => p._id)];
+
+//         // 4. Use Aggregation Pipeline on Pharmacy collection to find nearby pharmacies selling relevant products
+//         const pipeline = [
+//             {
+//                 // $geoNear must be the first stage in a pipeline unless it's preceded by $match, $sort, or $limit only when using a sharded collection.
+//                 // It filters documents by location and calculates distance.
+//                 $geoNear: {
+//                     near: { type: 'Point', coordinates: userCoordinates }, // User's location
+//                     distanceField: 'distance', // Output field name for distance
+//                     maxDistance: 5000, // Maximum distance in meters (5 km)
+//                     spherical: true, // Use spherical geometry for geographic data
+//                     // We don't use a 'query' here because we need to filter on elements *within* the 'medicines' array,
+//                     // which is better done after $unwind.
+//                 },
+//             },
+//              {
+//                  // Initial match: Only include pharmacies that contain at least one of the relevant product IDs
+//                  // in their 'medicines' array. This is an efficient initial filter.
+//                  $match: { 'medicines.medicineId': { $in: relevantProductIds } }
+//              },
+//             {
+//                 // Deconstruct the 'medicines' array. Each element becomes a separate document.
+//                 // This is necessary to filter and process individual medicine entries within a pharmacy.
+//                 $unwind: '$medicines',
+//             },
+//             {
+//                 // Match the unwound documents to keep only the ones corresponding to our relevant products.
+//                 // This filters out other medicines the pharmacy might sell.
+//                 $match: { 'medicines.medicineId': { $in: relevantProductIds } },
+//             },
+//             {
+//                 // Lookup product details for the matched medicineId.
+//                 // This stage joins the current documents (pharmacy+medicine entry) with the 'products' collection.
+//                 $lookup: {
+//                     from: 'products', // The name of the collection for the Product model (usually lowercase and plural)
+//                     localField: 'medicines.medicineId', // Field from the input documents ($unwound pharmacy documents)
+//                     foreignField: '_id', // Field from the 'products' collection
+//                     as: 'productDetails', // Output array field name to add product details
+//                 },
+//             },
+//             {
+//                 // $lookup results in an array (though it will have at most one element here).
+//                 // $unwind it to get the product document directly.
+//                 $unwind: '$productDetails',
+//             },
+//             {
+//                 // Group the documents by product ID.
+//                 // This stage gathers all pharmacy entries for the same product together.
+//                 $group: {
+//                     _id: '$medicines.medicineId', // Grouping key: the product ID
+//                     productDetails: { $first: '$productDetails' }, // Keep the product details (same for all in group)
+//                     pharmacies: {
+//                         // For each document in the group (each pharmacy selling this product),
+//                         // push an object with pharmacy details and the price/distance for this product.
+//                         $push: {
+//                             pharmacyId: '$_id', // The original pharmacy _id from before unwinding
+//                             pharmacyName: '$name', // Pharmacy name
+//                             distance: '$distance', // The actual distance calculated by $geoNear
+//                             price: '$medicines.price', // The price of THIS specific product in THIS pharmacy
+//                             pharmacyLocation: '$location' // Include location if needed in response
+//                         },
+//                     },
+//                      // Optional: Add total count of pharmacies for this product
+//                      // pharmacyCount: { $sum: 1 }
+//                 },
+//             },
+//             {
+//                  // Reshape the output documents to match the desired response structure.
+//                  $project: {
+//                      _id: 0, // Exclude the default _id created by $group
+//                      product: { // Embed product details in a 'product' object
+//                          _id: '$productDetails._id',
+//                          name: '$productDetails.name',
+//                          // Include other product fields you need in the response
+//                          type: '$productDetails.type',
+//                          category: '$productDetails.category',
+//                          sub_category: '$productDetails.sub_category',
+//                          brand: '$productDetails.brand',
+//                          description: '$productDetails.description',
+//                          manufacturer: '$productDetails.manufacturer',
+//                          imageUrl: '$productDetails.imageUrl',
+//                          // Note: '$productDetails.price' here is the *default* price from Product model,
+//                          // not the price in the specific pharmacy. The pharmacy-specific price is in the 'pharmacies' array.
+//                          // If you need the default product price, include it. Otherwise, maybe exclude it to avoid confusion.
+//                          // For this example, I'll include it based on your previous output structure.
+//                          price: '$productDetails.price', // Default product price
+//                          // Add other product details as needed
+//                          createdAt: '$productDetails.createdAt',
+//                          updatedAt: '$productDetails.updatedAt',
+//                          slug: '$productDetails.slug',
+//                          __v: '$productDetails.__v'
+//                      },
+//                      pharmacies: 1 // Include the array of pharmacies found for this product
+//                  }
+//             }
+//             // Optional stages: $sort, $limit, $skip could be added here for pagination/ordering
+//             // { $sort: { 'pharmacies.distance': 1 } } // Sort pharmacies *within* each product group (requires MongoDB 3.6+)
+//             // { $sort: { 'product.name': 1 } } // Sort the product results themselves
+//         ];
+
+//         const productResults = await Pharmacy.aggregate(pipeline);
+
+//         // --- Debugging Output ---
+//         // This will show the exact result of the aggregation pipeline
+//         console.log("Aggregation Results:", JSON.stringify(productResults, null, 2));
+//         // -----------------------
+
+//         // 5. Structure the final response based on aggregation results
+
+//         // Find the result object for the main product
+//         const mainProductResult = productResults.find(item =>
+//             item.product && item.product._id && item.product._id.equals(mainProduct._id)
+//         );
+
+//         // Filter the result objects for alternative products
+//         const alternativeResults = productResults.filter(item =>
+//              item.product && item.product._id && !item.product._id.equals(mainProduct._id)
+//         );
+
+//         const response = {
+//             success: true,
+//             message: 'Products found successfully',
+//             data: {
+//                 // If main product wasn't found in nearby pharmacies by the pipeline,
+//                 // return its details with an empty pharmacies array.
+//                 mainProduct: mainProductResult || {
+//                      product: mainProduct.toObject(), // Use the product object fetched initially
+//                      pharmacies: [] // No nearby pharmacies found selling it via the pipeline
+//                 },
+//                 // Return the alternative results found by the pipeline, or an empty array
+//                 // if no alternatives were found in nearby pharmacies.
+//                 alternatives: alternativeResults || [],
+//             },
+//         };
+
+//         res.status(200).json(response);
+
+//     } catch (error) {
+//         console.error('Error in searchProductsByLocation:', error); // Log the actual error
+//         res.status(500).json({ success: false, message: 'Failed to search for products', error: error.message });
+//     }
+// };
+
+// Assume Mongoose models are imported like this:
+// const User = require('../models/User');
+// const Product = require('../models/Product');
+// const Pharmacy = require('../models/Pharmacy');
+
+// Also assume relevant dependencies like express or others are handled elsewhere
+
+// exports.searchProductsByLocation = async (req, res) => {
+//     try {
+//         const { productName } = req.query;
+
+//         // 1. Fetch user and validate location
+//         const user = await User.findById(req.user._id);
+
+//         if (!user || !user.location || !user.location.coordinates || user.location.coordinates.length !== 2) {
+//             return res.status(400).json({ success: false, message: 'User location (coordinates) is required' });
+//         }
+
+//         // MongoDB stores coordinates as [longitude, latitude]
+//         const userCoordinates = user.location.coordinates;
+
+//         // 2. Find the main product
+//         // We still need this initially to get the _id and sub_category
+//         const mainProduct = await Product.findOne({ name: { $regex: productName, $options: 'i' } });
+
+//         if (!mainProduct) {
+//             return res.status(404).json({ success: false, message: 'Product not found' });
+//         }
+
+//         const subCategory = mainProduct.sub_category;
+
+//         // 3. Find alternative products (only need their IDs for the pipeline)
+//         const alternativeProducts = await Product.find({
+//             sub_category: subCategory,
+//             _id: { $ne: mainProduct._id },
+//         }).select('_id'); // Select only ID
+
+//         // List of all relevant product IDs (main + alternatives) for filtering in the pipeline
+//         const relevantProductIds = [mainProduct._id, ...alternativeProducts.map(p => p._id)];
+
+//         // 4. Use Aggregation Pipeline on Pharmacy collection to find nearby pharmacies selling relevant products
+//         // The pipeline's output will ONLY include products that were found in nearby pharmacies
+//         const pipeline = [
+//             {
+//                 $geoNear: {
+//                     near: { type: 'Point', coordinates: userCoordinates },
+//                     distanceField: 'distance',
+//                     maxDistance: 5000, // Max distance in meters
+//                     spherical: true,
+//                 },
+//             },
+//              {
+//                  // Initial match for performance: only process pharmacies that *might* have one of the products
+//                  $match: { 'medicines.medicineId': { $in: relevantProductIds } }
+//              },
+//             {
+//                 // Deconstruct the medicines array
+//                 $unwind: '$medicines',
+//             },
+//             {
+//                 // Match specific medicine entries that correspond to our relevant products
+//                 $match: { 'medicines.medicineId': { $in: relevantProductIds } },
+//             },
+//             {
+//                 // Lookup product details
+//                 $lookup: {
+//                     from: 'products', // The name of the collection for Product model
+//                     localField: 'medicines.medicineId',
+//                     foreignField: '_id',
+//                     as: 'productDetails',
+//                 },
+//             },
+//             {
+//                 // Unwind the product details array (should be size 1)
+//                 $unwind: '$productDetails',
+//             },
+//             {
+//                 // Group by product ID to aggregate pharmacies selling each product
+//                 $group: {
+//                     _id: '$medicines.medicineId', // Grouping key is the product ID
+//                     // Keep the product details - they are the same for this group
+//                     productDetails: { $first: '$productDetails' },
+//                     // Push pharmacy details, including distance and price for this specific medicine entry
+//                     pharmacies: {
+//                         $push: {
+//                             pharmacyId: '$_id', // The original pharmacy _id
+//                             pharmacyName: '$name', // Pharmacy name
+//                             distance: '$distance', // Distance calculated by $geoNear
+//                             price: '$medicines.price', // Price of THIS product in THIS pharmacy
+//                             pharmacyLocation: '$location' // Include location if needed
+//                         },
+//                     },
+//                      // Optional: Add a count of pharmacies for this product
+//                      // pharmacyCount: { $sum: 1 }
+//                 },
+//             },
+//             {
+//                  // Reshape the output document for each grouped product result
+//                  $project: {
+//                      _id: 0, // Exclude the default group _id
+//                      product: { // Embed product details
+//                          _id: '$productDetails._id',
+//                          name: '$productDetails.name',
+//                          // Add other product fields needed from productDetails
+//                          type: '$productDetails.type',
+//                          category: '$productDetails.category',
+//                          sub_category: '$productDetails.sub_category',
+//                          brand: '$productDetails.brand',
+//                          description: '$productDetails.description',
+//                          manufacturer: '$productDetails.manufacturer',
+//                          imageUrl: '$productDetails.imageUrl',
+//                          // Note: This price is from the Product model, not the pharmacy.
+//                          // The pharmacy-specific price is in the 'pharmacies' array elements.
+//                          price: '$productDetails.price', // Default product price
+//                          createdAt: '$productDetails.createdAt',
+//                          updatedAt: '$productDetails.updatedAt',
+//                          slug: '$productDetails.slug',
+//                          __v: '$productDetails.__v'
+//                      },
+//                      pharmacies: 1 // Include the array of pharmacies for this product
+//                  }
+//             }
+//             // Add sorting stages if needed, e.g., sort products by name or sort pharmacies by distance
+//             // { $sort: { 'product.name': 1 } } // Sort the main product results
+//             // You cannot easily sort pharmacies *within* the group by distance in this way for the final output structure without more complex steps or post-processing.
+//         ];
+
+//         const productResults = await Pharmacy.aggregate(pipeline);
+
+//         // --- Debugging Output ---
+//         // This will show the exact result of the aggregation pipeline
+//         console.log("Aggregation Results:", JSON.stringify(productResults, null, 2));
+//         // -----------------------
+
+//         // 5. Structure the final response based ONLY on the aggregation results
+
+//         // Find the result object for the main product (if it exists in the aggregation results)
+//         const mainProductResult = productResults.find(item =>
+//             item.product && item.product._id && item.product._id.equals(mainProduct._id)
+//         );
+
+//         // Filter the result objects for alternative products (if they exist in the aggregation results)
+//         const alternativeResults = productResults.filter(item =>
+//              item.product && item.product._id && !item.product._id.equals(mainProduct._id)
+//         );
+
+//         const responseData = {}; // Object to build the data part of the response
+
+//         // Only add the mainProduct to the response data IF it was found in nearby pharmacies by the pipeline
+//         if (mainProductResult) {
+//             responseData.mainProduct = mainProductResult;
+//         }
+//         // Note: If mainProductResult is null, the 'mainProduct' field will simply not be present in responseData.
+
+//         // Always add the alternatives array. It will contain only results from the pipeline,
+//         // and will be empty if no alternatives were found in nearby pharmacies.
+//         responseData.alternatives = alternativeResults || []; // Ensure it's always an array
+
+
+//         const response = {
+//             success: true,
+//             // You might want a more descriptive message if nothing is found, but keeping the original for now.
+//             // A neutral message like "Search completed" is often good.
+//             message: 'Nearby products search completed',
+//             data: responseData, // This data object now only contains products found in nearby pharmacies
+//         };
+
+//         // Optional: If neither mainProduct nor any alternatives were found in nearby pharmacies,
+//         // you could return a 404 status, or simply the 200 status with potentially empty 'data'.
+//         // Keeping 200 OK with potentially empty data part is common.
+//         // if (!responseData.mainProduct && (!responseData.alternatives || responseData.alternatives.length === 0)) {
+//         //      return res.status(404).json({ success: false, message: 'No nearby pharmacies found selling this product or its alternatives.' });
+//         // }
+
+
+//         res.status(200).json(response);
+
+//     } catch (error) {
+//         console.error('Error in searchProductsByLocation:', error); // Log the actual error
+//         res.status(500).json({ success: false, message: 'Failed to search for products', error: error.message });
+//     }
+// };
+// Assume Mongoose models are imported like this:
+// const User = require('../models/User');
+// const Product = require('../models/Product');
+// const Pharmacy = require('../models/Pharmacy');
+
+// Also assume relevant dependencies like express or others are handled elsewhere

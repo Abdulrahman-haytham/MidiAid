@@ -5,8 +5,9 @@ const User = require('../models/user');
 const { validationResult } = require('express-validator');
 const slugify = require('slugify');
 const Order = require('../models/Order');
-const Cart=require('../models/Cart')
-const Category=require('../models/Category')
+const Cart = require('../models/Cart');
+const Category = require('../models/Category');
+
 exports.createPharmacy = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -20,7 +21,7 @@ exports.createPharmacy = async (req, res) => {
       location,
       phone,
       openingHours,
-      workingDays, 
+      workingDays,
       imageUrl,
       description,
       services,
@@ -39,7 +40,7 @@ exports.createPharmacy = async (req, res) => {
       },
       phone,
       openingHours,
-      workingDays, 
+      workingDays,
       imageUrl,
       description,
       services,
@@ -55,6 +56,7 @@ exports.createPharmacy = async (req, res) => {
     console.log(error);
   }
 };
+
 exports.updatePharmacy = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -62,7 +64,6 @@ exports.updatePharmacy = async (req, res) => {
   }
 
   try {
-
     const userId = req.user.id;
 
     const {
@@ -71,7 +72,7 @@ exports.updatePharmacy = async (req, res) => {
       location,
       phone,
       openingHours,
-      workingDays, 
+      workingDays,
       imageUrl,
       description,
       services,
@@ -80,29 +81,36 @@ exports.updatePharmacy = async (req, res) => {
       medicines,
     } = req.body;
 
-    const updates = {};
-    if (name) updates.name = name;
-    if (address) updates.address = address;
+    const updates = { $set: {} };
+    if (name) updates.$set.name = name;
+    if (address) updates.$set.address = address;
     if (location && location.coordinates) {
-      updates.location = {
+      updates.$set.location = {
         type: 'Point',
         coordinates: location.coordinates,
       };
     }
-    if (phone) updates.phone = phone;
-    if (openingHours) updates.openingHours = openingHours;
-    if (workingDays) updates.workingDays = workingDays;  
-    if (imageUrl) updates.imageUrl = imageUrl;
-    if (description) updates.description = description;
-    if (services) updates.services = services;
-    if (socialMedia) updates.socialMedia = socialMedia;
-    if (website) updates.website = website;
-    if (medicines) updates.medicines = medicines;
+    if (phone) updates.$set.phone = phone;
+    if (workingDays) updates.$set.workingDays = workingDays;
+    if (imageUrl) updates.$set.imageUrl = imageUrl;
+    if (description) updates.$set.description = description;
+    if (services) updates.$set.services = services;
+    if (socialMedia) updates.$set.socialMedia = socialMedia;
+    if (website) updates.$set.website = website;
+    if (medicines) updates.$set.medicines = medicines;
 
-    // البحث عن الصيدلية بناءً على userId فقط
+    // التعامل مع التحديثات الجزئية لـ openingHours
+    if (openingHours) {
+      if (openingHours.morning?.from) updates.$set['openingHours.morning.from'] = openingHours.morning.from;
+      if (openingHours.morning?.to) updates.$set['openingHours.morning.to'] = openingHours.morning.to;
+      if (openingHours.evening?.from) updates.$set['openingHours.evening.from'] = openingHours.evening.from;
+      if (openingHours.evening?.to) updates.$set['openingHours.evening.to'] = openingHours.evening.to;
+    }
+
+    // البحث عن الصيدلية وتحديثها
     const updatedPharmacy = await Pharmacy.findOneAndUpdate(
-      { userId: userId },  // شرط البحث عن الصيدلية بناءً على الـ userId
-      { $set: updates }, // تحديث البيانات
+      { userId: userId },
+      updates,
       { new: true }
     );
 
@@ -116,16 +124,26 @@ exports.updatePharmacy = async (req, res) => {
     console.log(error);
   }
 };
+
 exports.getAllPharmacies = async (req, res) => {
   try {
     const pharmacies = await Pharmacy.find({ isActive: true }).select(
       'name address location phone openingHours workingDays imageUrl averageRating services'
     );
-    res.status(200).json(pharmacies);
+    // تنسيق اختياري لـ openingHours
+    const formattedPharmacies = pharmacies.map(pharmacy => ({
+      ...pharmacy._doc,
+      openingHours: {
+        formatted: `الصباح: من ${pharmacy.openingHours.morning.from} إلى ${pharmacy.openingHours.morning.to}, المساء: من ${pharmacy.openingHours.evening.from} إلى ${pharmacy.openingHours.evening.to}`,
+        raw: pharmacy.openingHours,
+      },
+    }));
+    res.status(200).json(formattedPharmacies);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 exports.getMyPharmacy = async (req, res) => {
   try {
     const pharmacy = await Pharmacy.findOne({ userId: req.user.id })
@@ -133,7 +151,7 @@ exports.getMyPharmacy = async (req, res) => {
         path: 'reviews.userId',
         select: 'name email',
       })
-      .exec();
+      .lean();
 
     if (!pharmacy) {
       return res.status(404).json({ message: 'لم يتم العثور على صيدلية لهذا المستخدم' });
@@ -157,7 +175,10 @@ exports.getMyPharmacy = async (req, res) => {
         name: pharmacy.name,
         address: pharmacy.address,
         phone: pharmacy.phone,
-        openingHours: pharmacy.openingHours,
+        openingHours: {
+          formatted: `الصباح: من ${pharmacy.openingHours.morning.from} إلى ${pharmacy.openingHours.morning.to}, المساء: من ${pharmacy.openingHours.evening.from} إلى ${pharmacy.openingHours.evening.to}`,
+          raw: pharmacy.openingHours,
+        },
         workingDays: pharmacy.workingDays,
         imageUrl: pharmacy.imageUrl,
         description: pharmacy.description,
@@ -182,20 +203,19 @@ exports.getMyPharmacy = async (req, res) => {
     res.status(500).json({ error: 'حدث خطأ أثناء جلب بيانات الصيدلية' });
   }
 };
+
 exports.getMyPharmacyOrders = async (req, res) => {
   try {
-    // نجيب الصيدلية المرتبطة بالمستخدم الحالي
     const pharmacy = await Pharmacy.findOne({ userId: req.user.id });
 
     if (!pharmacy) {
       return res.status(404).json({ message: 'لم يتم العثور على صيدلية لهذا المستخدم' });
     }
 
-    // نجيب كل الطلبات المرتبطة بهي الصيدلية
     const orders = await Order.find({ pharmacyId: pharmacy._id })
-      .populate('userId', 'name email') // معلومات المستخدم يلي عامل الطلب
-      .populate('items.productId', 'name price') // معلومات المنتجات داخل الطلب
-      .sort({ createdAt: -1 }); // الأحدث أولاً
+      .populate('userId', 'name email')
+      .populate('items.productId', 'name price')
+      .sort({ createdAt: -1 });
 
     res.status(200).json({ orders });
   } catch (error) {
@@ -203,6 +223,7 @@ exports.getMyPharmacyOrders = async (req, res) => {
     res.status(500).json({ message: 'حدث خطأ أثناء جلب الطلبات' });
   }
 };
+
 exports.ratePharmacy = async (req, res) => {
   try {
     const { id } = req.params;
@@ -232,10 +253,11 @@ exports.ratePharmacy = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 exports.checkUserHasPharmacy = async (req, res) => {
   try {
     const userId = req.user._id;
-     console.log(userId)
+    console.log(userId);
     const pharmacy = await Pharmacy.findOne({ userId });
 
     if (pharmacy) {
@@ -252,6 +274,7 @@ exports.checkUserHasPharmacy = async (req, res) => {
     res.status(500).json({ error: 'حدث خطأ أثناء التحقق من صيدلية المستخدم' });
   }
 };
+
 exports.getPharmacyDetails = async (req, res) => {
   try {
     const pharmacyId = req.params.id;
@@ -268,7 +291,10 @@ exports.getPharmacyDetails = async (req, res) => {
       imageUrl: pharmacy.imageUrl,
       address: pharmacy.address,
       phone: pharmacy.phone,
-      openingHours: pharmacy.openingHours,
+      openingHours: {
+        formatted: `الصباح: من ${pharmacy.openingHours.morning.from} إلى ${pharmacy.openingHours.morning.to}, المساء: من ${pharmacy.openingHours.evening.from} إلى ${pharmacy.openingHours.evening.to}`,
+        raw: pharmacy.openingHours,
+      },
       workingDays: pharmacy.workingDays,
       description: pharmacy.description,
       services: pharmacy.services,
@@ -319,7 +345,6 @@ exports.addProductToPharmacy = async (req, res) => {
   }
 };
 
-
 exports.findNearbyPharmacies = async (req, res) => {
   const { longitude, latitude, maxDistance = 5000 } = req.query;
 
@@ -335,7 +360,7 @@ exports.findNearbyPharmacies = async (req, res) => {
           $maxDistance: parseInt(maxDistance),
         },
       },
-    }).select('name location _id'); // ✅ 
+    }).select('name location _id');
 
     res.status(200).json(nearbyPharmacies);
   } catch (error) {
@@ -347,19 +372,16 @@ exports.createProduct = async (req, res) => {
   const { name, type, categoryName, sub_category, brand, description, manufacturer, imageUrl, price } = req.body;
 
   try {
-    // Verify user exists
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Find category by name
     const category = await Category.findOne({ name: categoryName });
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
     }
 
-    // Create new product
     const newProduct = new Product({
       name,
       type,
@@ -376,44 +398,41 @@ exports.createProduct = async (req, res) => {
 
     await newProduct.save();
 
-    // Find or create pharmacy for user
     let pharmacy = await Pharmacy.findOne({ userId: req.user.id });
-    
+
     if (!pharmacy) {
-      // Create new pharmacy if doesn't exist
       pharmacy = new Pharmacy({
         userId: req.user.id,
         medicines: [{
           medicineId: newProduct._id,
-          quantity: 1, // Default quantity
-          price: price
-        }]
+          quantity: 1,
+          price: price,
+        }],
       });
     } else {
-      // Add medicine to existing pharmacy
       pharmacy.medicines.push({
         medicineId: newProduct._id,
-        quantity: 1, // Default quantity
-        price: price
+        quantity: 1,
+        price: price,
       });
     }
 
     await pharmacy.save();
 
-    res.status(201).json({ 
-      message: 'Product created and added to pharmacy successfully', 
+    res.status(201).json({
+      message: 'Product created and added to pharmacy successfully',
       product: newProduct,
-      pharmacy: pharmacy
+      pharmacy: pharmacy,
     });
-
   } catch (error) {
     console.error("Error in createProduct controller:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Server error',
-      details: error.message 
+      details: error.message,
     });
   }
 };
+
 exports.getPharmacyMedicines = async (req, res) => {
   try {
     const pharmacyId = req.params.id;
@@ -421,7 +440,7 @@ exports.getPharmacyMedicines = async (req, res) => {
     const pharmacy = await Pharmacy.findById(pharmacyId)
       .populate({
         path: 'medicines.medicineId',
-        select: 'name imageUrl description category', // رجّع بس الحقول المهمة
+        select: 'name imageUrl description category',
       });
 
     if (!pharmacy) {
@@ -445,6 +464,7 @@ exports.getPharmacyMedicines = async (req, res) => {
     res.status(500).json({ error: 'خطأ أثناء جلب الأدوية من الصيدلية' });
   }
 };
+
 exports.searchMedicineInPharmacy = async (req, res) => {
   try {
     const { pharmacyId } = req.params;
@@ -458,7 +478,7 @@ exports.searchMedicineInPharmacy = async (req, res) => {
       path: 'medicines.medicineId',
       select: 'name imageUrl',
       match: {
-        name: { $regex: name, $options: 'i' }, // بحث غير حساس لحالة الأحرف
+        name: { $regex: name, $options: 'i' },
       },
     });
 
@@ -466,9 +486,8 @@ exports.searchMedicineInPharmacy = async (req, res) => {
       return res.status(404).json({ message: 'لم يتم العثور على صيدلية' });
     }
 
-    // استخراج الأدوية اللي تم مطابقة اسمها
     const matchedMedicines = pharmacy.medicines
-      .filter(med => med.medicineId) // لأن populate يرجع null لو ما طابق
+      .filter(med => med.medicineId)
       .map(med => ({
         id: med.medicineId._id,
         name: med.medicineId.name,
@@ -482,71 +501,26 @@ exports.searchMedicineInPharmacy = async (req, res) => {
     res.status(500).json({ error: 'حدث خطأ أثناء البحث' });
   }
 };
- 
 
-// exports.getPharmacyMedicines = async (req, res) => {
-//   const { pharmacyId } = req.params;
-
-//   try {
-//     const pharmacy = await Pharmacy.findById(pharmacyId)
-//       .populate({
-//         path: 'medicines.medicineId',
-//         select: 'name imageUrl description category price',
-//       })
-//       .exec();
-
-//     if (!pharmacy) {
-//       return res.status(404).json({ error: 'الصيدلية غير موجودة' });
-//     }
-
-//     const medicines = pharmacy.medicines.map(medicine => ({
-//       medicineId: medicine.medicineId._id,
-//       name: medicine.medicineId.name,
-//       imageUrl: medicine.medicineId.imageUrl,
-//       description: medicine.medicineId.description,
-//       category: medicine.medicineId.category,
-//       quantity: medicine.quantity,
-//       price: medicine.price,
-//     }));
-
-//     res.status(200).json({
-//       pharmacyId: pharmacy._id,
-//       pharmacyName: pharmacy.name,
-//       medicines,
-//       totalMedicines: medicines.length,
-//     });
-//   } catch (error) {
-//     console.error('خطأ بجلب أدوية الصيدلية:', error);
-//     res.status(500).json({ error: 'حدث خطأ أثناء جلب أدوية الصيدلية' });
-//   }
-// };
-
-exports.getPharmacyNamefromcart= async (req, res) => {
+exports.getPharmacyNamefromcart = async (req, res) => {
   try {
-    // جلب معرف المستخدم من التوكن (يتم إضافته بواسطة authMiddleware)
     const userId = req.user.id;
 
-    // البحث عن السلة الخاصة بالمستخدم
     const cart = await Cart.findOne({ userId });
 
-    // التحقق مما إذا كانت السلة موجودة
     if (!cart || cart.items.length === 0) {
       return res.status(404).json({ message: 'السلة فارغة أو غير موجودة' });
     }
 
-    // استخراج معرفات الصيدليات من عناصر السلة
     const pharmacyIds = [...new Set(cart.items.map(item => item.pharmacyId.toString()))];
 
-    // جلب أسماء الصيدليات بناءً على المعرفات
     const pharmacies = await Pharmacy.find(
       { _id: { $in: pharmacyIds } },
-      { name: 1, _id: 0 } // نختار حقل الاسم فقط
+      { name: 1, _id: 0 }
     );
 
-    // تحويل النتيجة إلى مصفوفة تحتوي على الأسماء فقط
     const pharmacyNames = pharmacies.map(pharmacy => pharmacy.name);
 
-    // إرجاع أسماء الصيدليات
     res.status(200).json({
       message: 'تم جلب أسماء الصيدليات بنجاح',
       pharmacies: pharmacyNames,
@@ -555,4 +529,4 @@ exports.getPharmacyNamefromcart= async (req, res) => {
     console.error('خطأ في جلب أسماء الصيدليات:', error);
     res.status(500).json({ message: 'خطأ في الخادم' });
   }
-}
+};
