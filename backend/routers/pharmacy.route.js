@@ -15,9 +15,9 @@ const {
   createProductValidator,
 } = require('../middlewares/validators/pharmacy.validator');
 
-// مسارات الصيدليات
+// Routes for pharmacies
 router.post(
-  '/pharmacies',
+  '/',
   isAuthenticated,
   hasRole('pharmacist'),
   createPharmacyValidator,
@@ -26,7 +26,7 @@ router.post(
 );
 
 router.put(
-  '/pharmacies',
+  '/updatePharmacy',
   isAuthenticated,
   hasRole('pharmacist'),
   updatePharmacyValidator,
@@ -34,24 +34,27 @@ router.put(
   pharmacyController.updatePharmacy
 );
 
-router.get('/pharmacies', pharmacyController.getAllPharmacies);
+router.get(
+  '/',
+  pharmacyController.getAllPharmacies
+);
 
 router.get(
-  '/pharmacies/my-pharmacy',
+  '/getMyPharmacy',
   isAuthenticated,
   hasRole('pharmacist'),
   pharmacyController.getMyPharmacy
 );
 
 router.get(
-  '/pharmacies/my-pharmacy/orders',
+  '/getMyPharmacyOrders',
   isAuthenticated,
   hasRole('pharmacist'),
   pharmacyController.getMyPharmacyOrders
 );
 
 router.post(
-  '/pharmacies/:id/rate',
+  '/:id/rate',
   isAuthenticated,
   pharmacyRateValidator,
   validate,
@@ -59,13 +62,13 @@ router.post(
 );
 
 router.get(
-  '/pharmacies/check',
+  '/checkUserHasPharmacy',
   isAuthenticated,
   pharmacyController.checkUserHasPharmacy
 );
 
 router.get(
-  '/pharmacies/:id/medicines',
+  '/getPharmacyMedicines/:id',
   pharmacyIdValidator,
   validate,
   pharmacyController.getPharmacyMedicines
@@ -79,14 +82,14 @@ router.get(
 );
 
 router.get(
-  '/pharmacies/:id',
+  '/getPharmacyDetails/:id',
   pharmacyIdValidator,
   validate,
   pharmacyController.getPharmacyDetails
 );
 
 router.post(
-  '/pharmacies/add-product',
+  '/add-product',
   isAuthenticated,
   hasRole('pharmacist'),
   addProductValidator,
@@ -95,14 +98,14 @@ router.post(
 );
 
 router.get(
-  '/pharmacies/nearby',
+  '/nearby',
   nearbyPharmaciesValidator,
   validate,
   pharmacyController.findNearbyPharmacies
 );
 
 router.post(
-  '/pharmacies/products',
+  '/create-product',
   isAuthenticated,
   hasRole('pharmacist'),
   createProductValidator,
@@ -111,7 +114,7 @@ router.post(
 );
 
 router.get(
-  '/pharmacies/cart/names',
+  '/getPharmacyNamefromcart',
   isAuthenticated,
   pharmacyController.getPharmacyNamefromcart
 );
