@@ -1,6 +1,6 @@
 const EmergencyOrder = require('../models/EmergencyOrder');
 const Pharmacy = require('../models/Pharmacy');
-const User = require('../models/User');
+const User = require('../models/user');
 
 // إنشاء طلب إسعافي جديد
 exports.createEmergencyOrder = async (req, res) => {

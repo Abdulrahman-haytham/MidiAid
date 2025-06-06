@@ -274,20 +274,35 @@ exports.requestPasswordReset = async (req, res) => {
         if (!email) return res.status(400).json({ message: 'Email is required' });
 
         const user = await User.findOne({ email: email.toLowerCase() });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        // Return generic message to prevent user enumeration
+        if (!user) return res.status(200).json({ message: 'If the email exists, a reset code has been sent' });
 
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetTokenExpiry = Date.now() + 3600000; // صالح لمدة ساعة واحدة
+        // Generate 6-digit numeric code
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetTokenExpiry = Date.now() + parseInt(process.env.PASSWORD_RESET_EXPIRES || '3600000');
 
-        user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        // Store plain code in database
+        user.resetPasswordToken = resetCode;
         user.resetPasswordExpires = resetTokenExpiry;
         await user.save();
 
-        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        // Send email with 6-digit code
         await sendEmail({
             email: user.email,
             subject: 'Password Reset Request',
-            message: `You requested a password reset. Please click on the link to reset your password: ${resetUrl}\nThis link is valid for 1 hour.`
+            message: `Use this code to reset your password: ${resetCode}`,
+            html: `
+                <h2>Password Reset Request</h2>
+                <p>Hello,</p>
+                <p>We received a request to reset your password. Please use the 6-digit code below to reset it:</p>
+                <p style="font-size: 18px; font-weight: bold; background-color: #f0f0f0; padding: 10px; border-radius: 5px; letter-spacing: 2px;">
+                    ${resetCode}
+                </p>
+                <p>This code is valid for 1 hour.</p>
+                <p>Enter this code in the password reset form in our application.</p>
+                <p>If you did not request a password reset, please ignore this email or contact our support team.</p>
+                <p>Best regards,<br>Your App Team</p>
+            `
         });
 
         res.status(200).json({ message: 'Password reset email sent' });
@@ -298,17 +313,21 @@ exports.requestPasswordReset = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     try {
-        const { token, password } = req.body;
-        if (!token || !password) return res.status(400).json({ message: 'Token and new password are required' });
+        const { email, token, password } = req.body;
 
-        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        if (!email || !token || !password) {
+            return res.status(400).json({ message: 'Email, token, and new password are required' });
+        }
 
         const user = await User.findOne({
-            resetPasswordToken: hashedToken,
+            email: email.toLowerCase(),
+            resetPasswordToken: token, // بدون تشفير
             resetPasswordExpires: { $gt: Date.now() }
         });
 
-        if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
+        if (!user) {
+            return res.status(400).json({ message: 'Invalid or expired token' });
+        }
 
         user.password = await bcrypt.hash(password, 10);
         user.resetPasswordToken = undefined;
@@ -320,4 +339,5 @@ exports.resetPassword = async (req, res) => {
         errorHandler(res, error, 'Password reset error');
     }
 };
+
 
