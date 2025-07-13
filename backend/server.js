@@ -1,52 +1,61 @@
-// Import required libraries
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const morgan = require('morgan');
 require('dotenv').config();
 
-const app = express();
-const connectDB = require('./config/database');
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const path = require('path');
+const rateLimit = require('express-rate-limit');
 
-const authRoute = require('./routers/auth.route');
-const uploadRoutes = require('./routers/upload.route');
-const categoryRoutes = require('./routers/category.route');
-const cartRoutes = require('./routers/cart.route');
-const kafuPostRoutes = require('./routers/kafuPosts.route');
-const orderRoutes = require('./routers/order.route');
-const pharmacyRoutes = require('./routers/pharmacy.route');
-const productRoutes = require('./routers/product.route');
-const usedMedicineRoutes = require('./routers/usedMedicine.route');
-// const emergencyOrder=require('./controllers/emergencyOrderController')
-app.use(express.json());
-app.use(morgan('dev'));
-app.use(cors());
-app.use(express.static(path.join(__dirname, 'dist')));
-app.use('/uploads', express.static('uploads'));
+const { connectDB, closeDB } = require('./src/core/config/database');
+const configureRoutes = require('./src/routes');
+const startServer = require('./startServer');
 
-app.use('/api/auth', authRoute);
-app.use('/api/uploads', uploadRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/kafu-posts', kafuPostRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/pharmacies', pharmacyRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/used-medicines', usedMedicineRoutes);
-// app.use('/api/emergencyOrder', emergencyOrder);
-
-
-app.get('/', (req, res) => {
-    res.status(200).send('🚀 Server is running successfully!');
+const requiredEnv = ['MongoURI', 'JWT_SECRET'];
+requiredEnv.forEach((key) => {
+  if (!process.env[key]) {
+    console.error(`❌ Missing required env variable: ${key}`);
+    process.exit(1);
+  }
 });
 
-// Middleware to handle invalid API endpoints
-app.use('*', (req, res) => {
-    res.status(404).json({ message: 'Invalid API endpoint' });
-});
+(async () => {
+  try {
+    await connectDB();
 
-connectDB();
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is listening on port: ${PORT}`);
-});
+    const app = express();
+
+    app.use(cors());
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(morgan('dev'));
+    app.use(helmet());
+
+    const apiLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 100,
+      message: 'Too many requests from this IP, try again later.'
+    });
+    app.use('/api', apiLimiter);
+
+    app.use(express.static(path.join(__dirname, 'dist')));
+    app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+    configureRoutes(app);
+
+    app.use('*', (req, res) => {
+      if (req.originalUrl.startsWith('/api/')) {
+        return res.status(404).json({
+          message: `API endpoint not found: ${req.method} ${req.originalUrl}`
+        });
+      }
+      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+    });
+
+    const PORT = process.env.PORT || 3000;
+    startServer(app, PORT, closeDB); // 🧠 تم تمرير دالة الإغلاق
+  } catch (err) {
+    console.error('❌ Failed to start server:', err);
+    process.exit(1);
+  }
+})();
