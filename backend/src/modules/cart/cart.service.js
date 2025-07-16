@@ -58,22 +58,12 @@ const cartService = {
     return cart;
   },
 
-  /**
-   * يجلب سلة التسوق الخاصة بالمستخدم.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<object|null>} - كائن السلة أو null.
-   */
+  
   async getUserCart(userId) {
     return await Cart.findOne({ userId });
   },
 
-  /**
-   * يحدّث كمية منتج في السلة.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {string} productId - معرّف المنتج.
-   * @param {number} quantity - الكمية الجديدة.
-   * @returns {Promise<object>} - كائن السلة المحدث.
-   */
+
   async updateItemQuantity(userId, productId, quantity) {
     const cart = await Cart.findOne({ userId });
     if (!cart) throw new Error('Cart not found');
@@ -92,12 +82,7 @@ const cartService = {
     return cart;
   },
 
-  /**
-   * يزيل منتجًا من السلة.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {string} productId - معرّف المنتج.
-   * @returns {Promise<object>} - كائن السلة المحدث.
-   */
+  
   async removeItemFromCart(userId, productId) {
     const cart = await Cart.findOne({ userId });
     if (!cart) throw new Error('Cart not found');
@@ -109,11 +94,6 @@ const cartService = {
     return cart;
   },
 
-  /**
-   * يفرّغ سلة التسوق بالكامل للمستخدم.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<void>}
-   */
   async clearUserCart(userId) {
     await Cart.findOneAndDelete({ userId });
   }

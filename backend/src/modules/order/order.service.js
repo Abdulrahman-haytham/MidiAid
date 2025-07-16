@@ -8,12 +8,7 @@ const Product = require('../product/Product.model');
 
 const orderService = {
   
-  /**
-   * إنشاء طلب جديد من سلة التسوق.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {object} orderDetails - تفاصيل الطلب { pharmacyName, orderType, deliveryAddress }.
-   * @returns {Promise<object>} - الطلب الذي تم إنشاؤه.
-   */
+ 
   async createOrderFromCart(userId, orderDetails) {
     const { pharmacyName, orderType, deliveryAddress } = orderDetails;
 
@@ -108,13 +103,6 @@ const orderService = {
     return order;
   },
 
-  /**
-   * تحديث حالة الطلب.
-   * @param {string} orderId - معرّف الطلب.
-   * @param {string} newStatus - الحالة الجديدة.
-   * @param {object} user - كائن المستخدم للتحقق من الصلاحيات.
-   * @returns {Promise<object>} - الطلب المحدث.
-   */
   async updateOrderStatus(orderId, newStatus, user) {
     const order = await Order.findById(orderId);
     if (!order) {
@@ -154,11 +142,6 @@ const orderService = {
     return order;
   },
 
-  /**
-   * جلب طلبات صيدلية معينة.
-   * @param {string} userId - معرّف مستخدم الصيدلية.
-   * @returns {Promise<Array>} - مصفوفة من الطلبات.
-   */
   async findOrdersForPharmacy(userId) {
     const pharmacy = await Pharmacy.findOne({ userId });
     if (!pharmacy) throw new Error('Unauthorized access');
@@ -168,11 +151,7 @@ const orderService = {
       .populate('items.productId', 'name price');
   },
 
-  /**
-   * جلب طلبات مستخدم معين.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<Array>} - مصفوفة من الطلبات المبسطة.
-   */
+ 
   async findOrdersForUser(userId) {
     const orders = await Order.find({ userId })
       .sort({ createdAt: -1 })
@@ -192,11 +171,7 @@ const orderService = {
       }));
   },
 
-  /**
-   * جلب تفاصيل طلب معين.
-   * @param {string} orderId - معرّف الطلب.
-   * @returns {Promise<object|null>} - كائن الطلب أو null.
-   */
+  
   async findOrderDetails(orderId) {
     return await Order.findById(orderId)
       .populate('userId', 'name phone')
@@ -204,13 +179,7 @@ const orderService = {
       .populate('pharmacyId', 'userId');
   },
 
-  /**
-   * تقييم طلب.
-   * @param {string} orderId - معرّف الطلب.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {object} ratingData - بيانات التقييم { rating, comment }.
-   * @returns {Promise<object>} - كائن التقييم.
-   */
+  
   async rateExistingOrder(orderId, userId, ratingData) {
     const { rating, comment } = ratingData;
     if (!rating || rating < 1 || rating > 5) {

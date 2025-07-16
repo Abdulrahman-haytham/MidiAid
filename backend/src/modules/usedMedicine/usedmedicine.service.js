@@ -1,15 +1,9 @@
-// src/modules/usedMedicine/usedmedicine.service.js
 
 const UsedMedicine = require('./UsedMedication');
 
 const usedMedicineService = {
 
-  /**
-   * إضافة دواء مستخدم جديد أو تحديث دواء موجود.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {object} medicineData - بيانات الدواء.
-   * @returns {Promise<{message: string, medicine: object}>} - رسالة و كائن الدواء/السجل.
-   */
+
   async addOrUpdateUsedMedicine(userId, medicineData) {
     const { productId, dosage, frequency, startDate, endDate, reminderTime } = medicineData;
     let usedMedicine = await UsedMedicine.findOne({ userId });
@@ -39,22 +33,12 @@ const usedMedicineService = {
     return { message: 'Medicine added successfully', medicine: usedMedicine };
   },
 
-  /**
-   * جلب قائمة الأدوية المستخدمة للمستخدم.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<Array|null>} - مصفوفة الأدوية أو null.
-   */
+
   async findUserMedicines(userId) {
     return await UsedMedicine.findOne({ userId }).populate('medicines.productId', 'name type brand');
   },
 
-  /**
-   * تحديث تفاصيل دواء مستخدم معين.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {string} medicineSubDocId - معرّف المستند الفرعي للدواء.
-   * @param {object} updateData - البيانات الجديدة.
-   * @returns {Promise<object>} - الدواء المحدث.
-   */
+  
   async updateUsedMedicineDetails(userId, medicineSubDocId, updateData) {
     const { dosage, frequency, endDate, reminderTime } = updateData;
     const usedMedicine = await UsedMedicine.findOne({ userId });
@@ -82,12 +66,7 @@ const usedMedicineService = {
     return medicine;
   },
 
-  /**
-   * حذف دواء مستخدم معين.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {string} medicineSubDocId - معرّف المستند الفرعي للدواء.
-   * @returns {Promise<void>}
-   */
+  
   async deleteUsedMedicine(userId, medicineSubDocId) {
     const usedMedicine = await UsedMedicine.findOne({ userId });
     if (!usedMedicine) {

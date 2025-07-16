@@ -9,11 +9,7 @@ const sendEmail = require('../../core/lib/email');
 
 const userService = {
 
-  /**
-   * تسجيل مستخدم جديد (user/pharmacist).
-   * @param {object} userData - بيانات المستخدم.
-   * @returns {Promise<object>} - المستخدم الجديد الذي تم إنشاؤه.
-   */
+
   async registerUser(userData) {
     const { username, email, password, firstName, lastName, phone, address, location, type, license } = userData;
 
@@ -48,12 +44,7 @@ const userService = {
     return newUser;
   },
 
-  /**
-   * التحقق من البريد الإلكتروني للمستخدم.
-   * @param {string} email - البريد الإلكتروني.
-   * @param {string} verificationCode - رمز التحقق.
-   * @returns {Promise<void>}
-   */
+
   async verifyUserEmail(email, verificationCode) {
     if (!email || !verificationCode) throw new Error('Email and code are required');
     const user = await User.findOne({ email: email.toLowerCase(), verificationCode });
@@ -65,38 +56,43 @@ const userService = {
     await user.save();
   },
 
-  /**
-   * تسجيل دخول المستخدم.
-   * @param {string} email - البريد الإلكتروني.
-   * @param {string} password - كلمة المرور.
-   * @returns {Promise<{token: string, user: object}>} - التوكن ومعلومات المستخدم.
-   */
   async loginUser(email, password) {
-    if (!email || !password) throw new Error('Email and password are required');
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user || !await bcrypt.compare(password, user.password)) {
-        throw new Error('Invalid email or password');
-    }
-    if (!user.isVerified) throw new Error('Email verification required');
-    const token = createToken(user._id, user.type);
-    return { token, user: { id: user._id, email, type: user.type } };
-  },
+  if (!email || !password) {
+    throw createError(400, 'Email and password are required');
+  }
 
-  /**
-   * جلب بيانات المستخدم الحالي.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<object|null>} - كائن المستخدم أو null.
-   */
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    throw createError(401, 'Invalid email or password');
+  }
+
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    throw createError(401, 'Invalid email or password');
+  }
+
+  if (!user.isVerified) {
+    throw createError(403, 'Email verification required');
+  }
+
+  const token = createToken(user._id, user.type);
+
+  return {
+    token,
+    user: {
+      id: user._id,
+      email: user.email,
+      type: user.type,
+    },
+  };
+},
+
+ 
   async findCurrentUser(userId) {
     return await User.findById(userId).select('type username email firstName lastName phone address location ');
   },
 
-  /**
-   * تحديث بيانات المستخدم الحالي.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {object} updates - البيانات الجديدة.
-   * @returns {Promise<object|null>} - المستخدم المحدث.
-   */
+
   async updateCurrentUserInfo(userId, updatesData) {
     const allowedUpdates = ['username', 'firstName', 'lastName', 'email', 'phone', 'address', 'location'];
     const updates = {};
@@ -108,21 +104,12 @@ const userService = {
     return await User.findByIdAndUpdate(userId, { $set: updates }, { new: true, runValidators: true }).select('-password');
   },
 
-  /**
-   * جلب جميع المستخدمين.
-   * @returns {Promise<Array>} - مصفوفة من المستخدمين.
-   */
+  
   async findAllUsers() {
     return await User.find().select('-password');
   },
   
-  /**
-   * تحديث مستخدم معين.
-   * @param {string} userIdToUpdate - معرّف المستخدم المُراد تحديثه.
-   * @param {object} updatingUser - كائن المستخدم الذي يقوم بالتحديث.
-   * @param {object} updateData - البيانات الجديدة.
-   * @returns {Promise<object>} - المستخدم المحدث.
-   */
+ 
   async updateUserById(userIdToUpdate, updatingUser, updateData) {
     const user = await User.findById(userIdToUpdate);
     if (!user) throw new Error('User not found');
@@ -143,12 +130,7 @@ const userService = {
     return user;
   },
 
-  /**
-   * حذف مستخدم معين.
-   * @param {string} userIdToDelete - معرّف المستخدم المُراد حذفه.
-   * @param {object} deletingUser - كائن المستخدم الذي يقوم بالحذف.
-   * @returns {Promise<void>}
-   */
+
   async deleteUserById(userIdToDelete, deletingUser) {
     const userToDeleteDoc = await User.findById(userIdToDelete);
     if (!userToDeleteDoc) throw new Error('User not found');
@@ -158,11 +140,7 @@ const userService = {
     await User.findByIdAndDelete(userIdToDelete);
   },
 
-  /**
-   * إنشاء حساب أدمن.
-   * @param {object} adminData - بيانات الأدمن.
-   * @returns {Promise<object>} - الأدمن الجديد الذي تم إنشاؤه.
-   */
+ 
   async createNewAdmin(adminData) {
     const { secret_key, username, email, password, firstName, lastName, phone, address, location } = adminData;
     if (!secret_key || secret_key !== process.env.SECRET_KEY_ADMIN) {
@@ -192,11 +170,7 @@ const userService = {
     return newUser;
   },
 
-  /**
-   * طلب إعادة تعيين كلمة المرور.
-   * @param {string} email - البريد الإلكتروني.
-   * @returns {Promise<void>}
-   */
+
   async requestPasswordResetByEmail(email) {
     if (!email) throw new Error('Email is required');
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -223,13 +197,7 @@ const userService = {
     }
   },
 
-  /**
-   * إعادة تعيين كلمة المرور.
-   * @param {string} email - البريد الإلكتروني.
-   * @param {string} token - رمز إعادة التعيين.
-   * @param {string} password - كلمة المرور الجديدة.
-   * @returns {Promise<void>}
-   */
+
   async resetPasswordWithToken(email, token, password) {
     if (!email || !token || !password) {
         throw new Error('Email, token, and new password are required');

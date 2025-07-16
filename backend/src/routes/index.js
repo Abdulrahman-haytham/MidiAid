@@ -23,7 +23,7 @@ const configureRoutes = (app) => {
   app.use(`${apiPrefix}/product`, productRoutes);
   app.use(`${apiPrefix}/upload`, uploadRoutes);
   app.use(`${apiPrefix}/used-medicine`, usedMedicineRoutes);
-  app.use(`${apiPrefix}/user`, userRoutes);
+  app.use(`${apiPrefix}/auth`, userRoutes);
   
   app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP', timestamp: new Date() });

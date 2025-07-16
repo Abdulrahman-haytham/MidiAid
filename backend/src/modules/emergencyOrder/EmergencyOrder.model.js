@@ -33,9 +33,15 @@ const emergencyOrderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'accepted', 'fulfilled', 'canceled', 'timed_out', 'no_response'],
+    // ✅ تعديل: إضافة حالة "fulfilled" لدورة حياة مكتملة
+    enum: ['pending', 'accepted', 'fulfilled', 'canceled', 'no_response'],
     default: 'pending',
   },
+  // ✅ تعديل: اسم الحقل أصبح أكثر وضوحًا
+  targettedPharmacies: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Pharmacy',
+  }],
   pharmacyResponses: [
     {
       pharmacyId: {
@@ -45,8 +51,7 @@ const emergencyOrderSchema = new mongoose.Schema({
       },
       response: {
         type: String,
-        enum: ['accepted', 'rejected', null],
-        default: null,
+        enum: ['accepted', 'rejected'],
       },
       responseTime: Date,
       rejectionReason: {
@@ -67,12 +72,14 @@ const emergencyOrderSchema = new mongoose.Schema({
   },
   responseTimeout: {
     type: Date,
-    required: true, // تحديد الوقت الذي تنتهي فيه مهلة الرد
+    required: true,
   },
 }, { timestamps: true });
 
 emergencyOrderSchema.index({ location: '2dsphere' });
 emergencyOrderSchema.index({ userId: 1 });
 emergencyOrderSchema.index({ acceptedPharmacyId: 1 });
+emergencyOrderSchema.index({ targettedPharmacies: 1 });
+
 
 module.exports = mongoose.model('EmergencyOrder', emergencyOrderSchema);

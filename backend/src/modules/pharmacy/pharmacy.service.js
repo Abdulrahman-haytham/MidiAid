@@ -10,12 +10,6 @@ const Category = require('../category/Category.model');
 
 const pharmacyService = {
 
-  /**
-   * إنشاء صيدلية جديدة.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {object} pharmacyData - بيانات الصيدلية.
-   * @returns {Promise<object>} - الصيدلية التي تم إنشاؤها.
-   */
   async createNewPharmacy(userId, pharmacyData) {
     const { name, address, location, phone, openingHours, workingDays, imageUrl, description, services, socialMedia, website, medicines } = pharmacyData;
     const pharmacy = new Pharmacy({
@@ -37,12 +31,6 @@ const pharmacyService = {
     return pharmacy;
   },
 
-  /**
-   * تحديث بيانات الصيدلية.
-   * @param {string} userId - معرّف مستخدم الصيدلية.
-   * @param {object} updateData - البيانات الجديدة.
-   * @returns {Promise<object>} - الصيدلية المحدثة.
-   */
   async updatePharmacyByUserId(userId, updateData) {
     const { name, address, location, phone, openingHours, workingDays, imageUrl, description, services, socialMedia, website, medicines } = updateData;
     const updates = { $set: {} };
@@ -66,28 +54,17 @@ const pharmacyService = {
     return await Pharmacy.findOneAndUpdate({ userId: userId }, updates, { new: true });
   },
 
-  /**
-   * جلب جميع الصيدليات النشطة.
-   * @returns {Promise<Array>} - مصفوفة من الصيدليات.
-   */
+
   async findAllActivePharmacies() {
     return await Pharmacy.find({ isActive: true }).select('name address location phone openingHours workingDays imageUrl averageRating services');
   },
 
-  /**
-   * جلب بيانات صيدلية مستخدم معين.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<object|null>} - كائن الصيدلية أو null.
-   */
+ 
   async findPharmacyByUserId(userId) {
     return await Pharmacy.findOne({ userId }).populate({ path: 'reviews.userId', select: 'name email' }).lean();
   },
 
-  /**
-   * جلب طلبات صيدلية مستخدم معين.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<Array>} - مصفوفة من الطلبات.
-   */
+  
   async findOrdersByPharmacyUserId(userId) {
     const pharmacy = await Pharmacy.findOne({ userId });
     if (!pharmacy) {
@@ -96,13 +73,7 @@ const pharmacyService = {
     return await Order.find({ pharmacyId: pharmacy._id }).populate('userId', 'name email').populate('items.productId', 'name price').sort({ createdAt: -1 });
   },
 
-  /**
-   * تقييم صيدلية.
-   * @param {string} pharmacyId - معرّف الصيدلية.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {number} rating - التقييم.
-   * @returns {Promise<object>} - الصيدلية بعد التقييم.
-   */
+ 
   async ratePharmacyById(pharmacyId, userId, rating) {
     if (!rating || rating < 0 || rating > 5) {
       throw new Error('Rating must be between 0 and 5');
@@ -121,32 +92,15 @@ const pharmacyService = {
     return pharmacy;
   },
 
-  /**
-   * التحقق مما إذا كان المستخدم يملك صيدلية.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<object|null>} - كائن الصيدلية أو null.
-   */
   async checkUserPharmacy(userId) {
     return await Pharmacy.findOne({ userId });
   },
 
-  /**
-   * جلب التفاصيل العامة للصيدلية.
-   * @param {string} pharmacyId - معرّف الصيدلية.
-   * @returns {Promise<object|null>} - كائن الصيدلية أو null.
-   */
+  
   async findPharmacyDetailsById(pharmacyId) {
     return await Pharmacy.findById(pharmacyId).lean();
   },
 
-  /**
-   * إضافة منتج إلى قائمة أدوية الصيدلية.
-   * @param {string} userId - معرّف مستخدم الصيدلية.
-   * @param {string} productId - معرّف المنتج.
-   * @param {number} quantity - الكمية.
-   * @param {number} price - السعر.
-   * @returns {Promise<object>} - الصيدلية المحدثة.
-   */
   async addProductToPharmacyStock(userId, productId, quantity, price) {
     if (!mongoose.Types.ObjectId.isValid(productId)) {
         throw new Error('Invalid product ID');
@@ -170,13 +124,6 @@ const pharmacyService = {
     return pharmacy;
   },
 
-  /**
-   * البحث عن الصيدليات القريبة.
-   * @param {number} longitude - خط الطول.
-   * @param {number} latitude - خط العرض.
-   * @param {number} maxDistance - المسافة القصوى.
-   * @returns {Promise<Array>} - مصفوفة من الصيدليات القريبة.
-   */
   async findNearbyPharmacies(longitude, latitude, maxDistance) {
     if (!longitude || !latitude) {
         throw new Error('Longitude and latitude are required');
@@ -191,12 +138,7 @@ const pharmacyService = {
     }).select('name location _id');
   },
 
-  /**
-   * إنشاء منتج وإضافته إلى الصيدلية.
-   * @param {string} userId - معرّف المستخدم.
-   * @param {object} productData - بيانات المنتج.
-   * @returns {Promise<{product: object, pharmacy: object}>} - المنتج والصيدلية.
-   */
+
   async createProductAndAddToPharmacy(userId, productData) {
     const { name, type, categoryName, sub_category, brand, description, manufacturer, imageUrl, price } = productData;
     const user = await User.findById(userId);
@@ -226,21 +168,12 @@ const pharmacyService = {
     return { product: newProduct, pharmacy: pharmacy };
   },
 
-  /**
-   * جلب أدوية صيدلية معينة.
-   * @param {string} pharmacyId - معرّف الصيدلية.
-   * @returns {Promise<object|null>} - كائن الصيدلية مع الأدوية.
-   */
+ 
   async findPharmacyMedicines(pharmacyId) {
     return await Pharmacy.findById(pharmacyId).populate({ path: 'medicines.medicineId', select: 'name imageUrl description category' });
   },
 
-  /**
-   * البحث عن دواء في صيدلية معينة.
-   * @param {string} pharmacyId - معرّف الصيدلية.
-   * @param {string} medicineName - اسم الدواء.
-   * @returns {Promise<Array>} - مصفوفة من الأدوية المطابقة.
-   */
+  
   async searchMedicineInPharmacyById(pharmacyId, medicineName) {
     if (!medicineName) {
         throw new Error('يرجى تحديد اسم الدواء للبحث');
@@ -261,11 +194,7 @@ const pharmacyService = {
       }));
   },
 
-  /**
-   * جلب أسماء الصيدليات من سلة التسوق للمستخدم.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<Array>} - مصفوفة من أسماء الصيدليات.
-   */
+ 
   async getPharmacyNamesFromCart(userId) {
     const cart = await Cart.findOne({ userId });
     if (!cart || cart.items.length === 0) {

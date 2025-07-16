@@ -1,10 +1,7 @@
 .env
 .gitignore
-generateRoutesIndex.js
 jsdoc.conf.json
 listFiles.js
-moveToCoreAndFixImports.js
-organizeModules.js
 package-lock.json
 package.json
 project_files.txt

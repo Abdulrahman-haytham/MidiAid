@@ -1,4 +1,4 @@
-// startServer.js
+
 function startServer(app, PORT, closeDatabase) {
   const server = app.listen(PORT, () => {
     console.log(`🚀 Server listening on port ${PORT}`);

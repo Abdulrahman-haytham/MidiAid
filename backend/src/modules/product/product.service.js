@@ -9,12 +9,6 @@ const Pharmacy = require('../pharmacy/Pharmacy.model');
 
 const productService = {
 
-  /**
-   * إنشاء منتج جديد.
-   * @param {object} user - كائن المستخدم.
-   * @param {object} productData - بيانات المنتج.
-   * @returns {Promise<object>} - المنتج الذي تم إنشاؤه.
-   */
   async createNewProduct(user, productData) {
     const { name, type, categoryName, sub_category, brand, description, manufacturer, imageUrl, price } = productData;
     if (!name) throw new Error('Product name is required');
@@ -33,11 +27,7 @@ const productService = {
     return await product.save();
   },
 
-  /**
-   * جلب المنتجات بناءً على دور المستخدم.
-   * @param {object} user - كائن المستخدم.
-   * @returns {Promise<Array>} - مصفوفة من المنتجات.
-   */
+ 
   async findVisibleProducts(user) {
     if (user) {
       if (user.role === 'admin' || user.role === 'user') {
@@ -52,59 +42,32 @@ const productService = {
     }
   },
 
-  /**
-   * جلب منتج واحد بواسطة الـ ID.
-   * @param {string} productId - معرّف المنتج.
-   * @returns {Promise<object|null>} - كائن المنتج أو null.
-   */
+  
   async findProductById(productId) {
     return await Product.findById(productId);
   },
 
-  /**
-   * تحديث منتج بواسطة الـ ID.
-   * @param {string} productId - معرّف المنتج.
-   * @param {object} updateData - البيانات الجديدة.
-   * @returns {Promise<object|null>} - المنتج المحدث أو null.
-   */
+  
   async updateProductById(productId, updateData) {
     return await Product.findByIdAndUpdate(productId, updateData, { new: true, runValidators: true });
   },
 
-  /**
-   * حذف منتج بواسطة الـ ID.
-   * @param {string} productId - معرّف المنتج.
-   * @returns {Promise<object|null>} - المنتج المحذوف أو null.
-   */
   async deleteProductById(productId) {
     return await Product.findByIdAndDelete(productId);
   },
 
-  /**
-   * البحث عن منتج بواسطة slug.
-   * @param {string} name - اسم المنتج.
-   * @returns {Promise<object|null>} - كائن المنتج أو null.
-   */
-  async findProductBySlug(name) {
-    const slug = slugify(name, { lower: true });
-    return await Product.findOne({ slug });
-  },
+ async findProductBySlug(name) {
+  const slug = slugify(name, { lower: true });
+  return await Product.findOne({ slug: { $regex: slug, $options: 'i' } });
+}
+,
 
-  /**
-   * جلب اقتراحات البحث.
-   * @param {string} query - نص البحث.
-   * @returns {Promise<Array>} - مصفوفة من المنتجات.
-   */
+ 
   async getSearchSuggestions(query) {
     return await Product.find({ name: { $regex: query, $options: 'i' } }).limit(10).select('name');
   },
 
-  /**
-   * تبديل حالة المنتج في المفضلة.
-   * @param {object} user - كائن المستخدم.
-   * @param {string} productId - معرّف المنتج.
-   * @returns {Promise<{message: string, favorites: Array}>} - رسالة وقائمة المفضلة المحدثة.
-   */
+
   async toggleProductFavorite(user, productId) {
     const product = await Product.findById(productId);
     if (!product) throw new Error('Product not found');
@@ -123,11 +86,6 @@ const productService = {
     return { message, favorites: user.favorites };
   },
 
-  /**
-   * جلب قائمة المنتجات المفضلة للمستخدم.
-   * @param {string} userId - معرّف المستخدم.
-   * @returns {Promise<Array>} - مصفوفة من المنتجات المفضلة.
-   */
   async findFavoriteProducts(userId) {
     const user = await User.findById(userId).lean();
     if (!user || !Array.isArray(user.favorites)) {
@@ -137,12 +95,7 @@ const productService = {
     return await Product.find({ _id: { $in: validFavorites } });
   },
 
-  /**
-   * البحث عن المنتجات القريبة من موقع المستخدم.
-   * @param {object} user - كائن المستخدم.
-   * @param {string} productName - اسم المنتج.
-   * @returns {Promise<object>} - نتائج البحث المهيكلة.
-   */
+
   async searchByLocation(user, productName) {
     if (!user || !user.location || !user.location.coordinates || user.location.coordinates.length !== 2) {
       throw new Error('User location (coordinates) is required');

@@ -1,6 +1,7 @@
 // src/modules/product/product.controller.js
 
 const productService = require('./product.service');
+const Product=require('./Product.model');
 
 exports.createProduct = async (req, res) => {
   try {
@@ -23,12 +24,25 @@ exports.createProduct = async (req, res) => {
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await productService.findVisibleProducts(req.user);
+    console.log("DEBUG: req.user object is:", req.user);
+    let products;
+    const user = req.user;
+    console.log(req.body)
+    if (user) {
+      if (user.role === 'admin' || user.role === 'user') {
+        products = await Product.find();
+      } else if (user.role === 'pharmacist') {
+        products = await Product.find({
+          $or: [{ isAdminCreated: true }, { createdBy: user._id }],
+        });
+      } else {
+        return res.status(403).json({ message: 'Access denied. Invalid user role.' });
+      }
+    } else {
+      products = await Product.find();
+    }
     res.status(200).json(products);
   } catch (error) {
-    if(error.message.includes('Access denied')) {
-        return res.status(403).json({ message: error.message });
-    }
     res.status(500).json({ message: 'Failed to retrieve products', error: error.message });
   }
 };
