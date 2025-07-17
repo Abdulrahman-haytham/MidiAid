@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const kafuPostsController = require('./kafupost.controller');
 const isAuthenticated = require('../../core/middlewares/isAuthenticated');
-const kafuPostValidator = require('./kafuPost.validator');
+const kafuPostValidator = require('./kafupost.validator');
 const validate = require('../../core/middlewares/validate');
 
 // Create a new Kafu post (with validation)

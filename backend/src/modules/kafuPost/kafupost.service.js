@@ -1,6 +1,6 @@
 // src/modules/kafuPost/kafupost.service.js
 
-const KafuPost = require('./KafuPost');
+const KafuPost = require('./KafuPost.model');
 
 const kafuPostService = {
 
