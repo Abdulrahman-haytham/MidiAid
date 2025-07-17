@@ -1,6 +1,6 @@
 const EmergencyOrder = require('./EmergencyOrder.model');
-const Product = require('./Product.model');
-const Pharmacy = require('./Pharmacy.model');
+const Product = require('../product/Product.model');
+const Pharmacy = require('../pharmacy/Pharmacy.model');
 
 const emergencyOrderService = {
 
