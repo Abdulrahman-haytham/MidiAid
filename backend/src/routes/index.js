@@ -13,18 +13,17 @@ const userRoutes = require('../modules/user/user.route');
 
 const configureRoutes = (app) => {
   const apiPrefix = '/api';
-
-  app.use(`${apiPrefix}/cart`, cartRoutes);
-  app.use(`${apiPrefix}/category`, categoryRoutes);
-  app.use(`${apiPrefix}/emergency-order`, emergencyOrderRoutes);
-  app.use(`${apiPrefix}/kafu-post`, kafuPostRoutes);
-  app.use(`${apiPrefix}/order`, orderRoutes);
-  app.use(`${apiPrefix}/pharmacy`, pharmacyRoutes);
-  app.use(`${apiPrefix}/product`, productRoutes);
-  app.use(`${apiPrefix}/upload`, uploadRoutes);
-  app.use(`${apiPrefix}/used-medicine`, usedMedicineRoutes);
   app.use(`${apiPrefix}/auth`, userRoutes);
-  
+  app.use(`${apiPrefix}/uploads`, uploadRoutes);
+  app.use(`${apiPrefix}/categories`, categoryRoutes); 
+  app.use(`${apiPrefix}/cart`, cartRoutes);
+  app.use(`${apiPrefix}/kafu-posts`, kafuPostRoutes);
+  app.use(`${apiPrefix}/orders`, orderRoutes);
+  app.use(`${apiPrefix}/pharmacies`, pharmacyRoutes);
+  app.use(`${apiPrefix}/products`, productRoutes);
+  app.use(`${apiPrefix}/used-medicines`, usedMedicineRoutes);
+  app.use(`${apiPrefix}/emergency-order`, emergencyOrderRoutes);
+
   app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP', timestamp: new Date() });
   });

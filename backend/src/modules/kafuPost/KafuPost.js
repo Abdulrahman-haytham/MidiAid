@@ -32,16 +32,9 @@ const kafuPostSchema = new mongoose.Schema({
     ref: 'Pharmacy',
     default: null
   },
-  location: {
-    type: {
-      type: String,
-      enum: ['Point'],
-      required: true
-    },
-    coordinates: {
-      type: [Number],
-      required: true
-    }
+  areaName: {
+    type: String,
+    required: true
   },
   status: {
     type: String,
@@ -60,8 +53,5 @@ const kafuPostSchema = new mongoose.Schema({
 }, {
   timestamps: true // Automatically add createdAt and updatedAt timestamps
 });
-
-// Index location for geospatial queries
-kafuPostSchema.index({ location: '2dsphere' });
 
 module.exports = mongoose.model('KafuPost', kafuPostSchema);

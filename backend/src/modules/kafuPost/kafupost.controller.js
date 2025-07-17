@@ -22,11 +22,14 @@ exports.getAllPosts = async (req, res) => {
   }
 };
 
-// Get Kafu posts near a user's location
-exports.getNearbyPosts = async (req, res) => {
+// Get Kafu posts by area
+exports.getPostsByArea = async (req, res) => {
   try {
-    const { lat, lng } = req.query;
-    const posts = await kafuPostService.findNearbyPosts(lat, lng);
+    const { areaName } = req.query;
+    if (!areaName) {
+      return res.status(400).json({ error: 'areaName is required in query' });
+    }
+    const posts = await kafuPostService.findPostsByArea(areaName);
     res.status(200).json(posts);
   } catch (error) {
     res.status(500).json({ error: error.message });

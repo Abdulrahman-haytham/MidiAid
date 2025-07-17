@@ -1,12 +1,77 @@
 const EmergencyOrder = require('./EmergencyOrder.model');
+const Product = require('./Product.model');
+const Pharmacy = require('./Pharmacy.model');
 
 const emergencyOrderService = {
-  
-  async createOrder(orderData, recipientPharmacyIds = []) {
-    const newOrder = new EmergencyOrder({
-      ...orderData,
-      targettedPharmacies: recipientPharmacyIds,
+
+  async createSmartEmergencyOrder(userId, orderRequestData) {
+    const { 
+      requestedMedicine, 
+      location, 
+      deliveryAddress, 
+      additionalNotes, 
+      priority = 'high', 
+      responseTimeoutInMinutes = 15 
+    } = orderRequestData;
+
+    if (!location || !location.coordinates || !requestedMedicine) {
+      throw new Error('Medicine name and user location are required.');
+    }
+
+    // --- بداية منطق البحث الذكي ---
+    const product = await Product.findOne({ name: { $regex: requestedMedicine, $options: 'i' } });
+    if (!product) {
+      throw new Error(`Product "${requestedMedicine}" not found in our system.`);
+    }
+
+    const nearbyPharmacies = await Pharmacy.aggregate([
+      { 
+        $geoNear: { 
+          near: { type: "Point", coordinates: [location.coordinates[0], location.coordinates[1]] }, 
+          distanceField: "distance", 
+          maxDistance: 5000, 
+          spherical: true 
+        } 
+      },
+      { $match: { isActive: true } },
+      { $project: { name: 1, averageRating: 1, medicines: 1, distance: 1 } }
+    ]);
+
+    const scoredPharmacies = nearbyPharmacies.map(pharmacy => {
+      const distanceScore = Math.max(0, 50 - (pharmacy.distance / 5000) * 50);
+      const ratingScore = (pharmacy.averageRating || 0) / 5 * 30;
+      const pharmacyProductIds = pharmacy.medicines.map(med => med.medicineId.toString());
+      const hasProduct = pharmacyProductIds.includes(product._id.toString());
+      const availabilityScore = hasProduct ? 20 : 0;
+      const totalScore = distanceScore + ratingScore + availabilityScore;
+      return { _id: pharmacy._id, score: totalScore, hasProduct: hasProduct };
     });
+
+    scoredPharmacies.sort((a, b) => b.score - a.score);
+
+    const targettedPharmacyIds = scoredPharmacies
+      .filter(p => p.hasProduct && p.score > 40)
+      .slice(0, 5)
+      .map(p => p._id);
+
+    if (targettedPharmacyIds.length === 0) {
+      throw new Error('Unfortunately, no nearby pharmacies currently have this product in stock.');
+    }
+
+    const responseTimeout = new Date(Date.now() + responseTimeoutInMinutes * 60 * 1000);
+
+    // إنشاء الطلب الجديد
+    const newOrder = new EmergencyOrder({
+      userId,
+      requestedMedicine: product.name,
+      location,
+      deliveryAddress,
+      additionalNotes,
+      priority,
+      responseTimeout,
+      targettedPharmacies: targettedPharmacyIds
+    });
+
     await newOrder.save();
     return newOrder;
   },
@@ -25,7 +90,7 @@ const emergencyOrderService = {
 
   async recordPharmacyResponse(orderId, pharmacyId, responseData) {
     const { response, rejectionReason } = responseData;
-    
+
     const update = {
       $push: {
         pharmacyResponses: {
@@ -39,8 +104,8 @@ const emergencyOrderService = {
 
     if (response === 'accepted') {
       update.$set = {
-          status: 'accepted',
-          acceptedPharmacyId: pharmacyId
+        status: 'accepted',
+        acceptedPharmacyId: pharmacyId
       };
     }
 
@@ -53,7 +118,7 @@ const emergencyOrderService = {
     if (!order) {
       throw new Error('Order not available for response (not found, already accepted, or you were not targetted).');
     }
-    
+
     return order;
   },
 
@@ -70,7 +135,6 @@ const emergencyOrderService = {
     return order;
   },
 
-
   async fulfillOrder(orderId, user) {
     const order = await EmergencyOrder.findById(orderId);
 
@@ -82,13 +146,13 @@ const emergencyOrderService = {
     const isAcceptedPharmacist = order.acceptedPharmacyId && order.acceptedPharmacyId.toString() === user.pharmacyId;
 
     if (!isOwner && !isAcceptedPharmacist) {
-        throw new Error('Unauthorized to mark this order as fulfilled.');
+      throw new Error('Unauthorized to mark this order as fulfilled.');
     }
 
     if (order.status !== 'accepted') {
-        throw new Error('Only accepted orders can be marked as fulfilled.');
+      throw new Error('Only accepted orders can be marked as fulfilled.');
     }
-    
+
     order.status = 'fulfilled';
     await order.save();
     return order;
@@ -96,7 +160,7 @@ const emergencyOrderService = {
 
   async processOrderTimeouts() {
     const currentTime = new Date();
-    
+
     await EmergencyOrder.updateMany(
       { status: 'pending', responseTimeout: { $lt: currentTime } },
       { $set: { status: 'no_response' } }
