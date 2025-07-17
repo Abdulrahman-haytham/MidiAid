@@ -1,6 +1,8 @@
 // src/modules/user/user.controller.js
 
 const userService = require('./user.service');
+const createError = require('http-errors');
+
 
 const errorHandler = (res, error, message = `Oops! ...`) => {
     console.error(message, error);

@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const User = require('./User.model');
 const createToken = require('../../core/lib/token');
 const sendEmail = require('../../core/lib/email');
+const createError = require('http-errors');
 
 const userService = {
 

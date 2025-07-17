@@ -29,7 +29,7 @@ const emergencyOrderService = {
         $geoNear: { 
           near: { type: "Point", coordinates: [location.coordinates[0], location.coordinates[1]] }, 
           distanceField: "distance", 
-          maxDistance: 5000, 
+          maxDistance: 5000,
           spherical: true 
         } 
       },

@@ -9,10 +9,10 @@ const hasRole = require('../../core/middlewares/hasRole');
 
 
 // User creates a new emergency order
-router.post('/create', isAuthenticated, hasRole('user'), emergencyOrderController.createEmergencyOrder);
+router.post('/create', isAuthenticated, emergencyOrderController.createEmergencyOrder);
 
 // User gets their emergency orders
-router.get('/my-orders', isAuthenticated, hasRole('user'), emergencyOrderController.getUserEmergencyOrders);
+router.get('/my-orders', isAuthenticated, emergencyOrderController.getUserEmergencyOrders);
 
 // Pharmacy gets its pending emergency orders
 router.get('/pharmacy-orders', isAuthenticated, hasRole('pharmacist'), emergencyOrderController.getPharmacyOrders);
@@ -24,7 +24,7 @@ router.get('/:id', isAuthenticated, emergencyOrderController.getEmergencyOrder);
 router.put('/:orderId/respond', isAuthenticated, hasRole('pharmacist'), emergencyOrderController.respondToEmergencyOrder);
 
 // User cancels their own order
-router.put('/:orderId/cancel', isAuthenticated, hasRole('user'), emergencyOrderController.cancelEmergencyOrder);
+router.put('/:orderId/cancel', isAuthenticated, emergencyOrderController.cancelEmergencyOrder);
 
 //  User or Pharmacist marks an order as fulfilled
 router.put('/:orderId/fulfill', isAuthenticated, emergencyOrderController.fulfillEmergencyOrder);

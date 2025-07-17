@@ -1,5 +1,5 @@
 const emergencyOrderService = require('./emergencyorder.service');
-
+const Pharmacy=require('../pharmacy/Pharmacy.model');
 exports.createEmergencyOrder = async (req, res) => {
   try {
     const newOrder = await emergencyOrderService.createSmartEmergencyOrder(req.user.id, req.body);
@@ -47,29 +47,46 @@ exports.getUserEmergencyOrders = async (req, res) => {
 };
 
 exports.getPharmacyOrders = async (req, res) => {
-    try {
-      const pharmacyId = req.user.pharmacyId;
-      if (!pharmacyId) {
-        return res.status(403).json({ message: 'User is not a pharmacist.' });
-      }
-      const orders = await emergencyOrderService.findOrdersForPharmacy(pharmacyId);
-      res.status(200).json(orders);
-    } catch (err) {
-      res.status(500).json({ message: 'Error fetching pharmacy orders.', error: err.message });
+  try {
+    const userId = req.user._id;
+
+    // نتأكد إنه Pharmacist
+    if (req.user.type !== 'pharmacist') {
+      return res.status(403).json({ message: 'User is not a pharmacist.' });
     }
+
+    // بنجيب الصيدلية المرتبطة بهاليوزر
+    const pharmacy = await Pharmacy.findOne({ userId });
+
+    if (!pharmacy) {
+      return res.status(404).json({ message: 'No pharmacy found for this user.' });
+    }
+
+    // هيك منستخدم pharmacy._id بدل req.user.pharmacyId
+    const orders = await emergencyOrderService.findOrdersForPharmacy(pharmacy._id);
+
+    res.status(200).json(orders);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching pharmacy orders.', error: err.message });
+  }
 };
 
 exports.respondToEmergencyOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const pharmacyId = req.user.pharmacyId;
+    const userId = req.user.id;
 
-    if (!pharmacyId) {
-      return res.status(403).json({ message: 'User is not a pharmacist.' });
+    // جيب الصيدلية المرتبطة بالمستخدم
+    const pharmacy = await Pharmacy.findOne({ userId });
+
+    if (!pharmacy) {
+      return res.status(403).json({ message: 'User is not associated with any pharmacy.' });
     }
     
+    const pharmacyId = pharmacy._id;
+
     const order = await emergencyOrderService.recordPharmacyResponse(orderId, pharmacyId, req.body);
-    // (لاحقًا: هنا يمكن إرسال إشعار WebSocket لصاحب الطلب)
+
     res.status(200).json({ message: 'Response recorded successfully.', order });
   } catch (err) {
     res.status(400).json({ message: 'Error responding to emergency order.', error: err.message });
