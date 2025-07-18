@@ -22,14 +22,12 @@ const kafuPostSchema = new mongoose.Schema({
     enum: ['Medicine Payment', 'Medicine Delivery'],
     required: true
   },
-  medicineId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Medicine',
+  medicineName :{
+    type:String,
     default: null
   },
-  pharmacyId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Pharmacy',
+   pharmacyName:{
+    type:String,
     default: null
   },
   areaName: {

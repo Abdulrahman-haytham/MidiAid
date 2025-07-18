@@ -12,13 +12,13 @@ const kafuPostValidator = [
   body('type')
     .isIn(['Medicine Payment', 'Medicine Delivery']).withMessage('Invalid type. Allowed values are Medicine Payment and Medicine Delivery'),
 
-  body('medicineId')
-    .optional()
-    .isMongoId().withMessage('Invalid Medicine ID format'),
+  body('medicineName')
+    .notEmpty().withMessage('medicineName is required')
+    .isLength({ max: 100 }).withMessage('medicineName must not exceed 100 characters'),
 
-  body('pharmacyId')
-    .optional()
-    .isMongoId().withMessage('Invalid Pharmacy ID format'),
+  body('pharmacyName')
+   .notEmpty().withMessage('pharmacyName is required')
+    .isLength({ max: 100 }).withMessage('pharmacyName must not exceed 100 characters'),
 
   body('areaName')
     .notEmpty().withMessage('Area name is required')

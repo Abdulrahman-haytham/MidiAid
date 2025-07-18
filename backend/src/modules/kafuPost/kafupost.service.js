@@ -5,9 +5,9 @@ const KafuPost = require('./KafuPost.model');
 const kafuPostService = {
 
   async createNewPost(userId, postData) {
-    const { title, description, type, medicineId, pharmacyId, areaName, expiresInDays } = postData;
+    const { title, description, type, medicineName, pharmacyName,expiresInDays,areaName } = postData;
     const expiresAt = new Date(Date.now() + (expiresInDays || 3) * 24 * 60 * 60 * 1000);
-    const newPost = new KafuPost({ userId, title, description, type, medicineId, pharmacyId, areaName, expiresAt });
+    const newPost = new KafuPost({ userId, title, description, type, medicineName, pharmacyName, areaName, expiresAt });
     await newPost.save();
     return newPost;
   },
