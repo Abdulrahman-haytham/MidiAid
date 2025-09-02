@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: mediAid_backend
+    ports:
+      - "3000:3000"
+    environment:
+      -MongoURI='mongodb+srv://hakeem515kom:0930112994@learnig-mongo-db.c7ehndp.mongodb.net/'
+      -jwt_expires_in=10d
+      -JWT_SECRET=your_jwt_secret_key
+      -secret_key_Admin=abdabd
+      -EMAIL_USER=hakeem515kom@gmail.com
+      -EMAIL_PASSWORD=wbikdqqghpvbidza  
+      -EMAIL_HOST=smtp.gmail.com
+      -EMAIL_PORT=465
+      -EMAIL_SECURE=true
+      -PASSWORD_RESET_EXPIRES=3600000 
+      -CLOUDINARY_CLOUD_NAME=dkbvnupge
+      -CLOUDINARY_API_KEY=472264742849326
+      -CLOUDINARY_API_SECRET=gsLbn2g9TmgAHBfZ5BnkPLMGHns
+
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app
+    command: npm start
+
+  mongo:
+    image: mongo:6
+    container_name: mediAid_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

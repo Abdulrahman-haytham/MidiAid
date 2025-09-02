@@ -56,10 +56,46 @@ const productService = {
     return await Product.findByIdAndDelete(productId);
   },
 
- async findProductBySlug(name) {
+async findProductBySlug(name) {
   const slug = slugify(name, { lower: true });
-  return await Product.findOne({ slug: { $regex: slug, $options: 'i' } });
+
+  // escape الرموز الخاصة عشان regex ما يكسر
+  const escapeRegex = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(escapeRegex(slug), 'i');
+
+  const products = await Product.find({ slug: { $regex: regex } })
+    .select('name slug price imageUrl brand') // الحقول الأساسية
+    .sort({ createdAt: -1 });
+
+  return products;
 }
+
+// async findProductsBySlug(name, page = 1, limit = 10) {
+//   const searchTerm = name.trim();
+//   const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+//   const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
+//   const skip = (pageNum - 1) * limitNum;
+
+//   // دالة لعمل escape للرموز الخاصة في regex
+//   const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+//   const regex = new RegExp(escapeRegex(searchTerm), 'i');
+
+//   const query = {
+//     isActive: true,
+//     name: { $regex: regex }
+//   };
+
+//   const products = await Product.find(query)
+//     .select('name slug price imageUrl brand')
+//     .skip(skip)
+//     .limit(limitNum)
+//     .sort({ createdAt: -1 });
+
+//   const total = await Product.countDocuments(query);
+
+//   return { products, total };
+// }
+
 ,
 
  

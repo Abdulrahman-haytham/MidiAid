@@ -1,5 +1,8 @@
 .env
 .gitignore
+backend\README.md
+docker-compose.yml
+Dockerfile
 jsdoc.conf.json
 listFiles.js
 package-lock.json
