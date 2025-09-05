@@ -180,7 +180,7 @@ const pharmacyService = {
     }
     const pharmacy = await Pharmacy.findById(pharmacyId).populate({
       path: 'medicines.medicineId',
-      select: 'name imageUrl',
+      select: 'name description imageUrl',
       match: { name: { $regex: medicineName, $options: 'i' } },
     });
     if (!pharmacy) {

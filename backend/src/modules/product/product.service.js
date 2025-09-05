@@ -64,7 +64,7 @@ async findProductBySlug(name) {
   const regex = new RegExp(escapeRegex(slug), 'i');
 
   const products = await Product.find({ slug: { $regex: regex } })
-    .select('name slug price imageUrl brand') // الحقول الأساسية
+    .select('name description slug price imageUrl brand') // الحقول الأساسية
     .sort({ createdAt: -1 });
 
   return products;
@@ -147,7 +147,7 @@ async findProductBySlug(name) {
     const relevantProductIds = [mainProduct._id, ...alternativeProducts.map(p => p._id)];
 
     const pipeline = [
-        { $geoNear: { near: { type: 'Point', coordinates: userCoordinates }, distanceField: 'distance', maxDistance: 500000, spherical: true } },
+        { $geoNear: { near: { type: 'Point', coordinates: userCoordinates }, distanceField: 'distance', maxDistance: 5000000, spherical: true } },
         { $match: { 'medicines.medicineId': { $in: relevantProductIds } } },
         { $unwind: '$medicines' },
         { $match: { 'medicines.medicineId': { $in: relevantProductIds } } },
