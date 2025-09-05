@@ -13,6 +13,7 @@ const {
   nearbyPharmaciesValidator,
   addProductValidator,
   createProductValidator,
+  searchPharmacyByName,
 } = require('./pharmacy.validator');
 
 // Routes for pharmacies
@@ -117,6 +118,11 @@ router.get(
   '/getPharmacyNamefromcart',
   isAuthenticated,
   pharmacyController.getPharmacyNamefromcart
+);
+
+router.get(
+  '/searchPharmacyByName',
+  pharmacyController.searchPharmacyByName
 );
 
 module.exports = router;

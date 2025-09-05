@@ -246,3 +246,29 @@ exports.getPharmacyNamefromcart = async (req, res) => {
     res.status(500).json({ message: 'خطأ في الخادم' });
   }
 };
+
+exports.searchPharmacyByName = async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name) {
+      return res.status(400).json({ message: 'Please provide a name to search' });
+    }
+
+    const pharmacies = await pharmacyService.findPharmacyByName(name);
+
+    if (pharmacies.length === 0) {
+      return res.status(404).json({
+        message: 'No pharmacies found with this name',
+        pharmacies: [],
+      });
+    }
+
+    res.status(200).json({
+      message: 'Pharmacies retrieved successfully',
+      pharmacies,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

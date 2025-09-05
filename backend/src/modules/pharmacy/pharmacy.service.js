@@ -204,6 +204,12 @@ const pharmacyService = {
     const pharmacies = await Pharmacy.find({ _id: { $in: pharmacyIds } }, { name: 1, _id: 0 });
     return pharmacies.map(pharmacy => pharmacy.name);
   }
+  ,
+  async  findPharmacyByName  (name)  {
+  // البحث يكون جزئي (Case-insensitive)
+  const regex = new RegExp(name, 'i'); // i = ignore case
+  return Pharmacy.find({ name: regex, isActive: true });
+}
 };
 
 module.exports = pharmacyService;
