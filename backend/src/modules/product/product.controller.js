@@ -149,3 +149,36 @@ exports.searchProductsByLocation = async (req, res) => {
     }
   }
 };
+
+exports.searchProductsByCategory = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const { q } = req.query; // نص البحث بيجي من ?q=
+
+    if (!q) {
+      return res.status(400).json({ message: "يرجى إدخال كلمة للبحث" });
+    }
+
+    const products = await productService.searchProducts(categoryId, q);
+
+    if (!products || products.length === 0) {
+      return res.status(200).json({
+        success: true,
+        results: 0,
+        data: [],
+        message: "لا يوجد منتجات مطابقة",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      results: products.length,
+      data: products,
+      message: "تم العثور على المنتجات بنجاح",
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "خطأ في السيرفر" });
+  }
+};
+

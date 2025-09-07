@@ -47,6 +47,7 @@ const productSchema = new mongoose.Schema({
   },
   isActive: {
     type: Boolean,
+    default: true
   },
   price: {
     type: Number,

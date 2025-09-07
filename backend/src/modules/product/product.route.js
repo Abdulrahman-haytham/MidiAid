@@ -18,7 +18,10 @@ router.get('/search', isAuthenticated, productSearchValidator, validate, product
 
 router.get('/search/:name', productSearchValidator, validate, productController.searchProductBySlug); 
 
-
+router.get(
+  "/searchProducts/:categoryId",
+  productController.searchProductsByCategory
+);
 router.get('/:id', productIdValidator, validate, productController.getProductById);
 
 router.put('/:id', isAuthenticated, hasRole('admin'), productIdValidator, validate, productController.updateProduct);

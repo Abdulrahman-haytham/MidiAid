@@ -104,6 +104,8 @@ async findProductBySlug(name) {
   },
 
 
+
+
   async toggleProductFavorite(user, productId) {
     const product = await Product.findById(productId);
     if (!product) throw new Error('Product not found');
@@ -122,6 +124,18 @@ async findProductBySlug(name) {
     return { message, favorites: user.favorites };
   },
 
+async  searchProducts(categoryId, searchTerm) {
+  const query = {
+    category: new mongoose.Types.ObjectId(categoryId), // تأكيد إنو ObjectId
+    name: { $regex: searchTerm, $options: "i" }      // بحث جزئي غير حساس لحالة الأحرف
+  };
+
+  const products = await Product.find(query).select(
+    "name description slug price imageUrl brand"
+  );
+
+  return products;
+},
   async findFavoriteProducts(userId) {
     const user = await User.findById(userId).lean();
     if (!user || !Array.isArray(user.favorites)) {
