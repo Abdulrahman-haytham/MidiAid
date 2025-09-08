@@ -2,25 +2,29 @@ const emergencyOrderService = require('./emergencyorder.service');
 const Pharmacy=require('../pharmacy/Pharmacy.model');
 exports.createEmergencyOrder = async (req, res) => {
   try {
-    const newOrder = await emergencyOrderService.createSmartEmergencyOrder(req.user.id, req.body);
-    
-    // (لاحقًا: هنا يمكن إرسال إشعارات WebSocket للصيدليات)
+    const newOrder = await emergencyOrderService.createSmartEmergencyOrder(
+      req.user.id, 
+      req.body
+    );
+
     res.status(201).json({
       message: `Emergency order created and sent to the best-matching pharmacies.`,
       order: newOrder,
     });
   } catch (err) {
     console.error("Error in createEmergencyOrder controller:", err);
-    // معالجة الأخطاء التي قد تأتي من السيرفس بشكل أفضل
+
     if (err.message.includes('not found')) {
       return res.status(404).json({ message: err.message });
     }
     if (err.message.includes('required')) {
       return res.status(400).json({ message: err.message });
     }
+
     res.status(500).json({ message: 'An error occurred while creating the emergency order.', error: err.message });
   }
 };
+
 
 
 

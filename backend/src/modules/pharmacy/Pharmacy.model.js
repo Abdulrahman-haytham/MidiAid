@@ -55,7 +55,7 @@ const pharmacySchema = new mongoose.Schema({
 ,
   workingDays: {
     type: [String],
-    enum: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+    enum: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
     default: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'],
   }
 ,  
