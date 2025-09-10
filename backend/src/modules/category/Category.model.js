@@ -19,7 +19,6 @@ const categorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Middleware لإنشاء slug تلقائيًا قبل الحفظ
 categorySchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
   next();

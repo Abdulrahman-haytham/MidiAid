@@ -1,8 +1,4 @@
-/**
- * @desc    Handle file upload
- * @route   POST /api/upload
- * @access  Public
- */
+
 exports.uploadFile = async (req, res) => {
   try {
     const file = req.file;

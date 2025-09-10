@@ -1,5 +1,3 @@
-// src/modules/usedMedicine/usedmedicine.controller.js
-
 const usedMedicineService = require('./usedmedicine.service');
 
 exports.addMedicine = async (req, res) => {

@@ -1,5 +1,3 @@
-// src/modules/user/user.service.js
-
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
@@ -175,7 +173,7 @@ const userService = {
   async requestPasswordResetByEmail(email) {
     if (!email) throw new Error('Email is required');
     const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) return; // لا نُرجع خطأ للحماية من تعداد المستخدمين
+    if (!user) return; 
 
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedToken = crypto.createHash('sha256').update(resetCode).digest('hex');
@@ -193,7 +191,6 @@ const userService = {
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save();
-        // إعادة إلقاء الخطأ ليتم التقاطه في الكونترولر
         throw new Error('Failed to send password reset email.');
     }
   },

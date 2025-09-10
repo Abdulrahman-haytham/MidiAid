@@ -1,7 +1,6 @@
 const { body, param } = require('express-validator');
 
 const cartValidator = [
-  // التحقق عند إضافة عنصر إلى العربة
   body('productId')
     .notEmpty().withMessage('Product ID is required')
     .isMongoId().withMessage('Invalid Product ID'),
@@ -16,8 +15,6 @@ const cartValidator = [
 
   
 
-  // التحقق عند مسح العربة بالكامل
-  // لا يوجد مدخلات إضافية هنا
 ];
 
 module.exports = cartValidator;

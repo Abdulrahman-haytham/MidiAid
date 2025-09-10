@@ -33,11 +33,9 @@ const emergencyOrderSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    // ✅ تعديل: إضافة حالة "fulfilled" لدورة حياة مكتملة
     enum: ['pending', 'accepted', 'fulfilled', 'canceled', 'no_response'],
     default: 'pending',
   },
-  // ✅ تعديل: اسم الحقل أصبح أكثر وضوحًا
   targettedPharmacies: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Pharmacy',

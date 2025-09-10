@@ -54,19 +54,17 @@ exports.getPharmacyOrders = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // نتأكد إنه Pharmacist
     if (req.user.type !== 'pharmacist') {
       return res.status(403).json({ message: 'User is not a pharmacist.' });
     }
 
-    // بنجيب الصيدلية المرتبطة بهاليوزر
+    
     const pharmacy = await Pharmacy.findOne({ userId });
 
     if (!pharmacy) {
       return res.status(404).json({ message: 'No pharmacy found for this user.' });
     }
 
-    // هيك منستخدم pharmacy._id بدل req.user.pharmacyId
     const orders = await emergencyOrderService.findOrdersForPharmacy(pharmacy._id);
 
     res.status(200).json(orders);
@@ -80,7 +78,6 @@ exports.respondToEmergencyOrder = async (req, res) => {
     const { orderId } = req.params;
     const userId = req.user.id;
 
-    // جيب الصيدلية المرتبطة بالمستخدم
     const pharmacy = await Pharmacy.findOne({ userId });
 
     if (!pharmacy) {
@@ -103,7 +100,6 @@ exports.cancelEmergencyOrder = async (req, res) => {
     const userId = req.user.id;
 
     await emergencyOrderService.cancelOrder(orderId, userId);
-    // (لاحقًا: هنا يمكن إرسال إشعار WebSocket للصيدليات لإعلامهم بالإلغاء)
     res.status(200).json({ message: 'Emergency order canceled successfully.' });
   } catch (err) {
     res.status(400).json({ message: 'Error canceling emergency order.', error: err.message });

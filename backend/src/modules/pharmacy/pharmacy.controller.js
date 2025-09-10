@@ -1,5 +1,3 @@
-// src/modules/pharmacy/pharmacy.controller.js
-
 const pharmacyService = require('./pharmacy.service');
 const { validationResult } = require('express-validator');
 

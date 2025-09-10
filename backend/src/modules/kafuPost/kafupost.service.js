@@ -1,4 +1,3 @@
-// src/modules/kafuPost/kafupost.service.js
 
 const KafuPost = require('./KafuPost.model');
 
@@ -55,7 +54,6 @@ const kafuPostService = {
   }
 };
 
-// Run daily cleanup of expired posts
 setInterval(kafuPostService.deleteExpiredPosts, 24 * 60 * 60 * 1000);
 
 module.exports = kafuPostService;

@@ -19,19 +19,19 @@ const usedMedicineSchema = new mongoose.Schema({
         trim: true,
       },
       frequency: {
-        type: String, // مثال: "مرتين يومياً"
+        type: String, 
         required: true,
         trim: true,
       },
       startDate: {
         type: Date,
-        default: Date.now, // تاريخ بدء الاستخدام
+        default: Date.now, 
       },
       endDate: {
-        type: Date, // يمكن للمستخدم تحديد تاريخ انتهاء الاستخدام
+        type: Date, 
       },
       reminderTime: {
-        type: String, // مثال: "08:00 AM"
+        type: String, 
       },
       history: [
         {

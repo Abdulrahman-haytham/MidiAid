@@ -1,4 +1,3 @@
-// src/core/config/database.js
 const mongoose = require('mongoose');
 
 let isConnected = false;

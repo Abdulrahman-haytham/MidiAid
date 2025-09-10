@@ -7,7 +7,7 @@ const { orderValidator, orderIdValidator } = require('./order.validator');
 const { validationResult } = require('express-validator');
 
 const validate = require('../../core/middlewares/validate'); 
-// استيراد الدالة
+
 router.post('/create', isAuthenticated, OrderController.createOrder);
 router.put('/:orderId/status', isAuthenticated, orderIdValidator, validate, OrderController.updateOrderStatus);
 router.get('/pharmacy-orders', isAuthenticated, hasRole('pharmacist'), OrderController.getPharmacyOrders);

@@ -1,5 +1,3 @@
-// src/modules/pharmacy/pharmacy.service.js
-
 const mongoose = require('mongoose');
 const Pharmacy = require('./Pharmacy.model');
 const Product = require('../product/Product.model');

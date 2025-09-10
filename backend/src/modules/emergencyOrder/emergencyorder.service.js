@@ -21,10 +21,9 @@ const emergencyOrderService = {
   let finalLocation = null;
 
   if (location && location.coordinates) {
-    // إذا بعت موقع بالطلب
     finalLocation = location;
   } else {
-    // إذا ما بعت موقع منروح منجيب من بياناته
+    
     const user = await User.findById(userId);
     if (!user || !user.location || !user.location.coordinates) {
       throw new Error('User location not found. Please provide a location.');
@@ -43,7 +42,7 @@ const emergencyOrderService = {
       $geoNear: { 
         near: { type: "Point", coordinates: finalLocation.coordinates }, 
         distanceField: "distance", 
-        maxDistance: 5000,
+        maxDistance: 5000000,
         spherical: true 
       } 
     },
@@ -52,7 +51,7 @@ const emergencyOrderService = {
   ]);
 
   const scoredPharmacies = nearbyPharmacies.map(pharmacy => {
-    const distanceScore = Math.max(0, 50 - (pharmacy.distance / 5000) * 50);
+    const distanceScore = Math.max(0, 50 - (pharmacy.distance / 500000) * 50);
     const ratingScore = (pharmacy.averageRating || 0) / 5 * 30;
     const pharmacyProductIds = pharmacy.medicines.map(med => med.medicineId.toString());
     const hasProduct = pharmacyProductIds.includes(product._id.toString());
@@ -64,7 +63,7 @@ const emergencyOrderService = {
   scoredPharmacies.sort((a, b) => b.score - a.score);
 
   const targettedPharmacyIds = scoredPharmacies
-    .filter(p => p.hasProduct && p.score > 40)
+    .filter(p => p.hasProduct && p.score > 20)
     .slice(0, 5)
     .map(p => p._id);
 
@@ -88,6 +87,7 @@ const emergencyOrderService = {
   await newOrder.save();
   return newOrder;
 }
+
 ,
 
   async findOrderById(orderId) {

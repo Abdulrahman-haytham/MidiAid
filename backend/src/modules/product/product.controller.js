@@ -1,4 +1,3 @@
-// src/modules/product/product.controller.js
 
 const productService = require('./product.service');
 const Product=require('./Product.model');

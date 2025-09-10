@@ -10,7 +10,6 @@ const orderValidator = [
 
 
 
-  // التحقق من نوع الطلب
   body('orderType')
     .isIn(['delivery', 'reservation']).withMessage('Invalid order type. Allowed values are delivery and reservation'),
 

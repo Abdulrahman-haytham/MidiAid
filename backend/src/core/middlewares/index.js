@@ -1,5 +1,3 @@
-// src/core/middlewares/index.js
-
 module.exports = {
   hasRole: require('./hasRole'),
   isAuthenticated: require('./isAuthenticated'),

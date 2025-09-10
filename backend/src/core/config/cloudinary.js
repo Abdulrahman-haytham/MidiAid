@@ -13,7 +13,6 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'my-app-uploads', 
         allowed_formats: ['jpeg', 'png', 'jpg', 'gif'], 
-        // transformation: [{ width: 500, height: 500, crop: 'limit' }] 
     }
 });
 

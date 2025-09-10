@@ -18,7 +18,6 @@ function startServer(app, PORT, closeDatabase) {
     });
   };
 
-  // Signals
   process.on('SIGINT', () => {
     console.log('📴 SIGINT received.');
     shutdown(0);
@@ -29,7 +28,6 @@ function startServer(app, PORT, closeDatabase) {
     shutdown(0);
   });
 
-  // Unhandled errors
   process.on('unhandledRejection', (reason) => {
     console.error('💥 Unhandled Rejection:', reason);
     shutdown(1);

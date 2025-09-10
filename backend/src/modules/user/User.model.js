@@ -112,13 +112,12 @@ userSchema.pre('save', async function (next) {
     }
 
     try {
-        this.password = await bcrypt.hash(this.password, 12); // يمكنك استخدام 12 لمزيد من الأمان
+        this.password = await bcrypt.hash(this.password, 12); 
         next();
     } catch (error) {
         next(error);
     }
 });
-// تحقق إضافي عند التعديل
 userSchema.pre('validate', function (next) {
     if (this.type === 'pharmacist' && !this.license) {
         this.invalidate('license', 'License is required for pharmacists');

@@ -1,5 +1,3 @@
-// src/modules/product/product.service.js
-
 const Product = require('./Product.model');
 const User = require('../user/User.model');
 const mongoose = require('mongoose');
@@ -161,7 +159,7 @@ async  searchProducts(categoryId, searchTerm) {
     const relevantProductIds = [mainProduct._id, ...alternativeProducts.map(p => p._id)];
 
     const pipeline = [
-        { $geoNear: { near: { type: 'Point', coordinates: userCoordinates }, distanceField: 'distance', maxDistance: 5000000, spherical: true } },
+        { $geoNear: { near: { type: 'Point', coordinates: userCoordinates }, distanceField: 'distance', maxDistance: 500000, spherical: true } },
         { $match: { 'medicines.medicineId': { $in: relevantProductIds } } },
         { $unwind: '$medicines' },
         { $match: { 'medicines.medicineId': { $in: relevantProductIds } } },
@@ -186,7 +184,6 @@ async  searchProducts(categoryId, searchTerm) {
 
     const productResults = await Pharmacy.aggregate(pipeline);
     
-    // إعلام: لم أغير أي شيء في console.log
     console.log("Aggregation Results:", JSON.stringify(productResults, null, 2));
 
     if (!productResults || productResults.length === 0) {

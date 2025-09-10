@@ -1,9 +1,7 @@
-// src/modules/cart/cart.controller.js
 
 const cartService = require('./cart.service');
 const mongoose = require('mongoose');
 
-// إضافة منتج إلى السلة
 exports.addToCart = async (req, res) => {
   try {
     const { productId, quantity, pharmacyId } = req.body;
@@ -19,12 +17,9 @@ exports.addToCart = async (req, res) => {
     if (quantity <= 0) {
       return res.status(400).json({ error: 'الكمية يجب أن تكون أكبر من الصفر.' });
     }
-    // ----- End of Validation -----
 
-    // Call the service to handle business logic
     const cart = await cartService.addProductToCart(userId, { productId, quantity, pharmacyId });
 
-    // Format the response
     res.status(200).json({
       success: true,
       message: 'تمت إضافة المنتج إلى السلة بنجاح.',
@@ -35,7 +30,6 @@ exports.addToCart = async (req, res) => {
     });
 
   } catch (error) {
-    // Distinguish between client errors and server errors
     if (error.message.includes('المنتج غير متوفر') || error.message.includes('المنتج غير موجود')) {
       return res.status(404).json({ error: error.message });
     }
@@ -48,7 +42,6 @@ exports.addToCart = async (req, res) => {
   }
 };
 
-// جلب سلة المستخدم
 exports.getCart = async (req, res) => {
   try {
     const cart = await cartService.getUserCart(req.user.id);
@@ -61,7 +54,6 @@ exports.getCart = async (req, res) => {
   }
 };
 
-// تحديث كمية منتج في السلة
 exports.updateCartItem = async (req, res) => {
   try {
     const { quantity } = req.body;
@@ -78,7 +70,6 @@ exports.updateCartItem = async (req, res) => {
   }
 };
 
-// إزالة منتج من السلة
 exports.removeFromCart = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -93,7 +84,6 @@ exports.removeFromCart = async (req, res) => {
   }
 };
 
-// تفريغ السلة بالكامل
 exports.clearCart = async (req, res) => {
   try {
     await cartService.clearUserCart(req.user.id);

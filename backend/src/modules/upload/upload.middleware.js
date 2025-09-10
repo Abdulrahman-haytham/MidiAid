@@ -1,7 +1,6 @@
-// src/modules/upload/upload.middleware.js
 const multer = require('multer');
-const { storage } = require('../../core/config/cloudinary'); // استيراد الـ storage من ملف الإعدادات
+const { storage } = require('../../core/config/cloudinary');
 
-const upload = multer({ storage: storage }); // استخدم Cloudinary storage بدلاً من diskStorage
+const upload = multer({ storage: storage }); 
 
 module.exports = upload;

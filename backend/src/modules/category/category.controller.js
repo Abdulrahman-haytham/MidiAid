@@ -1,8 +1,6 @@
-// src/modules/category/category.controller.js
 
 const categoryService = require('./category.service');
 
-// إنشاء فئة جديدة
 exports.createCategory = async (req, res) => {
   try {
     const { name, image } = req.body;
@@ -18,7 +16,6 @@ exports.createCategory = async (req, res) => {
   }
 };
 
-// تحديث فئة
 exports.updateCategory = async (req, res) => {
   try {
     const { name, image } = req.body;
@@ -32,7 +29,6 @@ exports.updateCategory = async (req, res) => {
   }
 };
 
-// جلب جميع الفئات
 exports.getAllCategories = async (req, res) => {
   try {
     const categories = await categoryService.findAllCategories();
@@ -42,7 +38,6 @@ exports.getAllCategories = async (req, res) => {
   }
 };
 
-// جلب فئة واحدة
 exports.getCategoryById = async (req, res) => {
   try {
     const category = await categoryService.findCategoryById(req.params.id);
@@ -53,7 +48,6 @@ exports.getCategoryById = async (req, res) => {
   }
 };
 
-// البحث عن فئة بالاسم (تحويل الاسم إلى slug)
 exports.searchCategory = async (req, res) => {
   try {
     const category = await categoryService.findCategoryByName(req.params.name);
@@ -64,7 +58,6 @@ exports.searchCategory = async (req, res) => {
   }
 };
 
-// حذف فئة بالـ ID
 exports.deleteCategoryById = async (req, res) => {
   try {
     const category = await categoryService.deleteCategoryById(req.params.id);
@@ -75,7 +68,6 @@ exports.deleteCategoryById = async (req, res) => {
   }
 };
 
-// حذف فئة بالاسم
 exports.deleteCategoryByName = async (req, res) => {
   try {
     const category = await categoryService.deleteCategoryByName(req.params.name);
@@ -86,7 +78,6 @@ exports.deleteCategoryByName = async (req, res) => {
   }
 };
 
-// جلب المنتجات حسب الفئة
 exports.getProductsByCategory = async (req, res) => {
   try {
     const products = await categoryService.findProductsByCategoryId(req.params.categoryId);

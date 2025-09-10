@@ -1,6 +1,5 @@
 .env
 .gitignore
-backend\README.md
 docker-compose.yml
 Dockerfile
 jsdoc.conf.json
@@ -9,6 +8,7 @@ package-lock.json
 package.json
 project_files.txt
 README.md
+scripts\reset-db.js
 scripts\seed.js
 server.js
 src\core\config\cloudinary.js

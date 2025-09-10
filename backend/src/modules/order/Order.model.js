@@ -20,7 +20,7 @@ const orderSchema = new mongoose.Schema({
       },
       name: {
         type: String,
-        required: true, // أو false إذا لم تكن تضمن وجوده دائماً
+        required: true, 
         trim: true,
       },
       quantity: {
@@ -49,7 +49,7 @@ const orderSchema = new mongoose.Schema({
   totalPrice: {
     type: Number,
     required: true,
-    default: 0, // إضافة قيمة افتراضية للحماية
+    default: 0,
   },
   rating: {
     score: {
@@ -62,6 +62,6 @@ const orderSchema = new mongoose.Schema({
       trim: true,
     },
   },
-}, { timestamps: true }); // إضافة الـ timestamps
+}, { timestamps: true }); 
 
 module.exports = mongoose.model('Order', orderSchema);

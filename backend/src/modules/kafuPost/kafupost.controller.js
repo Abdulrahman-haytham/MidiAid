@@ -1,8 +1,6 @@
-// src/modules/kafuPost/kafupost.controller.js
 
 const kafuPostService = require('./kafupost.service');
 
-// Create a new Kafu post
 exports.createPost = async (req, res) => {
   try {
     const newPost = await kafuPostService.createNewPost(req.user.id, req.body);
@@ -12,7 +10,6 @@ exports.createPost = async (req, res) => {
   }
 };
 
-// Get all open Kafu posts
 exports.getAllPosts = async (req, res) => {
   try {
     const posts = await kafuPostService.findAllOpenPosts();
@@ -22,7 +19,6 @@ exports.getAllPosts = async (req, res) => {
   }
 };
 
-// Get Kafu posts by area
 exports.getPostsByArea = async (req, res) => {
   try {
     const { areaName } = req.query;
@@ -36,7 +32,6 @@ exports.getPostsByArea = async (req, res) => {
   }
 };
 
-// Accept a Kafu request
 exports.acceptRequest = async (req, res) => {
   try {
     const post = await kafuPostService.acceptKafuRequest(req.params.postId, req.user.id);
@@ -49,7 +44,6 @@ exports.acceptRequest = async (req, res) => {
   }
 };
 
-// Mark a Kafu request as completed
 exports.completeRequest = async (req, res) => {
   try {
     const post = await kafuPostService.completeKafuRequest(req.params.postId, req.user.id);
@@ -62,7 +56,6 @@ exports.completeRequest = async (req, res) => {
   }
 };
 
-// Delete a Kafu post
 exports.deletePost = async (req, res) => {
   try {
     await kafuPostService.deletePostById(req.params.postId, req.user);

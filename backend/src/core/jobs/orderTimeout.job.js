@@ -1,4 +1,3 @@
-// src/core/jobs/orderTimeout.job.js
 const cron = require('node-cron');
 const emergencyOrderService = require('../../modules/emergencyOrder/emergencyorder.service');
 

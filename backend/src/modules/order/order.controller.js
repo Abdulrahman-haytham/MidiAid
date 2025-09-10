@@ -1,5 +1,3 @@
-// src/modules/order/order.controller.js
-
 const orderService = require('./order.service');
 
 exports.createOrder = async (req, res) => {

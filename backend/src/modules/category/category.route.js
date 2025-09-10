@@ -4,9 +4,9 @@ const router = express.Router();
 const categoryController = require('../category/category.controller');
 const isAuthenticated = require('../../core/middlewares/isAuthenticated');
 const hasRole = require('../../core/middlewares/hasRole');
-const categoryValidator = require('./category.validator'); // استيراد الفاليديتور
+const categoryValidator = require('./category.validator'); 
 
-const validate = require('../../core/middlewares/validate'); // استيراد الدالة
+const validate = require('../../core/middlewares/validate'); 
 
 router.post('/create', isAuthenticated, hasRole('admin'), categoryValidator, validate, categoryController.createCategory);
 router.put('/update/:id', isAuthenticated, hasRole('admin'), categoryValidator, validate, categoryController.updateCategory);

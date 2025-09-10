@@ -1,4 +1,3 @@
-// src/modules/cart/cart.service.js
 
 const Cart = require('./Cart.model');
 const mongoose = require('mongoose');
@@ -11,7 +10,6 @@ const cartService = {
     const { productId, quantity, pharmacyId } = itemData;
 
     if (!mongoose.Types.ObjectId.isValid(productId) || !mongoose.Types.ObjectId.isValid(pharmacyId) || quantity <= 0) {
-      // سيتم التعامل مع هذا الخطأ في الكونترولر أو يمكن تحويله إلى AppError
       throw new Error('بيانات الإدخال غير صالحة.');
     }
 

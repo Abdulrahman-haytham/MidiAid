@@ -67,14 +67,12 @@ const productSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-// Middleware to generate slug before saving
 productSchema.pre('save', function (next) {
   if (this.isModified('name')) {
     this.slug = slugify(this.name, { lower: true, strict: true });
   }
   next();
 });
-// Middleware لتعيين createdBy و isAdminCreated تلقائيًا
 productSchema.pre('save', async function (next) {
   if (this.isModified('createdBy')) {
     try {
